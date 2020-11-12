@@ -156,11 +156,10 @@ def is_on(name):
 
 if __name__ == '__main__':
     func = argv[1]
-    if len(argv) > 2:
+    if len(argv) == 2:
+        print(globals()[func]())
+    else:
         param = argv[2]
         print(globals()[func](param))
         if func in ["on", "off"]:
             DiscordLogger().startup(func, param)
-    elif len(argv) > 3:
-        param = None
-        print(globals()[func]())
