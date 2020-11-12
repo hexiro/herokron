@@ -34,7 +34,7 @@ Herokron uses a .env file to load Heroku/Discord API keys. Feel free to hard cod
 
 Make sure all Heroku API keys work by listing all apps
 ```python
- python3 Herokron.py apps_list
+python3 Herokron.py apps_list
 ```
 
 ## 📈 Usage
