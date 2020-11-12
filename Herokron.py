@@ -162,3 +162,4 @@ if __name__ == '__main__':
         print(globals()[func](param))
         if func in ["on", "off"]:
             DiscordLogger().startup(func, param)
+print('*splooges*')
