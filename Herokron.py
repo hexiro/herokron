@@ -33,7 +33,7 @@ class DiscordLogger(commands.Bot):
         log_embed = Embed(color=int(environ["DISCORD_COLOR"], 16))
         log_embed.add_field(name="Function", value=self.func)
         log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
-        log_embed.set_footer(text=f"test-heroku-app • {datetime.now():%I:%M %p}")
+        log_embed.set_footer(text=f"{self.title} • {datetime.now():%I:%M %p}")
         await channel.send(embed=log_embed)
 
     @log_message.after_loop
