@@ -11,7 +11,6 @@ from discord.ext import tasks
 from discord.utils import get
 from discord import Embed
 
-
 load_dotenv()
 calls = []
 returns = []
