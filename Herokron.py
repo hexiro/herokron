@@ -85,7 +85,6 @@ class Herokron:
         :return: The dict with one key `online` which will be T/F.
         """
         _is_on = {"online": bool(self.app.process_formation()[self.proc_type].quantity)}
-        print(_is_on)
         returns.append(_is_on)
         return _is_on
 
