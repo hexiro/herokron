@@ -1,6 +1,7 @@
 from dotenv import dotenv_values
 from pprint import pprint
 from argparse import ArgumentParser
+from os.path import realpath
 
 
 def main():
@@ -21,7 +22,6 @@ def main():
     if bool(_heroku_num) and not _heroku_num.isdigit():
         parser.print_help()
     if bool(_heroku_key):
-        print('Bruh')
         if f"HEROKU_KEY{_heroku_num}" in keys:
             values[keys.index(f"HEROKU_KEY{_heroku_num}")][1] = _heroku_key
         else:
@@ -38,6 +38,7 @@ def main():
             values.append(["DISCORD_COLOR", _discord_color])
     pprint(values)
     with open(".env", "w") as file:
+        print(realpath(".env"))
         for key, value in values:
             file.write(f"{key}={value}\n")
 
