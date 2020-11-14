@@ -1,15 +1,14 @@
-from sys import argv
+from sys import exit
 from os import environ
 from inspect import isfunction
 from inspect import ismethod
 from datetime import datetime
+from argparse import ArgumentParser
 
 from dotenv import load_dotenv
 from heroku3 import from_key
-from discord.ext import commands
-from discord.ext import tasks
-from discord.utils import get
-from discord import Embed
+from dhooks import Embed
+from dhooks import Webhook
 
 
 load_dotenv()
@@ -17,36 +16,13 @@ calls = []
 returns = []
 
 
-class DiscordLogger(commands.Bot):
-
-    def __init__(self):
-        super().__init__(
-            command_prefix="!",
-            help_command=None)
-
-    async def on_ready(self):
-        self.log_message.start()
-
-    @tasks.loop(count=1)
-    async def log_message(self):
-        channel = get(self.get_all_channels(), guild__name=environ["DISCORD_GUILD"], name=environ["DISCORD_CHANNEL"])
-        log_embed = Embed(color=int(environ["DISCORD_COLOR"], 16))
-        log_embed.add_field(name="Function", value=self.func)
-        log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
-        log_embed.set_footer(text=f"{self.title} • {datetime.now():%I:%M %p}")
-        await channel.send(embed=log_embed)
-
-    @log_message.after_loop
-    async def after_log(self):
-        try:
-            await self.close()
-        except RuntimeError:
-            pass
-
-    def startup(self, func, param):
-        self.func = func
-        self.title = param
-        self.run(environ["DISCORD_TOKEN"])
+def log_message(func, title):
+    hook = Webhook(environ["DISCORD_WEBHOOK"])
+    log_embed = Embed(color=int(environ["DISCORD_COLOR"], 16))
+    log_embed.add_field(name="Function", value=func)
+    log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
+    log_embed.set_footer(text=f"{title} • {datetime.now():%I:%M %p}")
+    hook.send(embed=log_embed)
 
 
 class Herokron:
@@ -95,11 +71,11 @@ class Herokron:
         """
         _is_on = self.is_on()
         if _is_on["online"] :
-            _on = {"changed": False, "online": True}
+            _on = {"changed": False, "online": True, "app": self.app.name}
             returns.append(_on)
             return _on
         self.app.process_formation()[self.proc_type].scale(1)
-        _on = {"changed": True, "online": True}
+        _on = {"changed": True, "online": True, "app": self.app.name}
         returns.append(_on)
         return _on
 
@@ -110,11 +86,11 @@ class Herokron:
         """
         _is_on = self.is_on()
         if not _is_on["online"]:
-            _off = {"changed": False, "online": False}
+            _off = {"changed": False, "online": False, "app": self.app.name}
             returns.append(_off)
             return _off
         self.app.process_formation()[self.proc_type].scale(0)
-        _off = {"changed": True, "online": False}
+        _off = {"changed": True, "online": False, "app": self.app.name}
         returns.append(_off)
         return _off
 
@@ -153,12 +129,29 @@ def is_on(name):
     return Herokron(name).is_on()
 
 
-if __name__ == '__main__':
-    func = argv[1]
-    if len(argv) == 2:
-        print(globals()[func]())
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("func",
+                        help="The name of the function to call.")
+    parser.add_argument("app",
+                        help="The name of the Heroku app.",
+                        nargs="?",
+                        default=None)
+    options = parser.parse_args()
+    print(options)
+    _func = options.func
+    _app = options.app
+    if _func not in globals():
+        parser.print_help()
+        exit(1)
+    if bool(_app) and _func in ["on", "off"]:
+        print(globals()[_func](_app))
+        log_message(_func, _app)
+    elif bool(_app):
+        print(globals()[_func](_app))
     else:
-        param = argv[2]
-        print(globals()[func](param))
-        if func in ["on", "off"]:
-            DiscordLogger().startup(func, param)
+        print(globals()[_func]())
+
+
+if __name__ == "__main__":
+    main()
