@@ -1,3 +1,4 @@
+from logging import NOTSET
 from sys import exit
 from os import environ
 from inspect import isfunction
@@ -10,15 +11,17 @@ from heroku3 import from_key
 from dhooks import Embed
 from dhooks import Webhook
 
+from herokrondir import get_datafile
 
-load_dotenv()
+
+load_dotenv(get_datafile())
 calls = []
 returns = []
 
 
 def log_message(func, title):
-    hook = Webhook(environ["DISCORD_WEBHOOK"])
-    log_embed = Embed(color=int(environ["DISCORD_COLOR"], 16))
+    hook = Webhook(environ["WEBHOOK"])
+    log_embed = Embed(color=int(environ["COLOR"], 16))
     log_embed.add_field(name="Function", value=func)
     log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
     log_embed.set_footer(text=f"{title} • {datetime.now():%I:%M %p}")
@@ -146,7 +149,8 @@ def main():
         exit(1)
     if bool(_app) and _func in ["on", "off"]:
         print(globals()[_func](_app))
-        log_message(_func, _app)
+        if environ.get("WEBHOOK", None) is not None:
+            log_message(_func, _app)
     elif bool(_app):
         print(globals()[_func](_app))
     else:

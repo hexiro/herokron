@@ -1,47 +1,60 @@
 from dotenv import dotenv_values
 from pprint import pprint
 from argparse import ArgumentParser
-from os.path import realpath
+
+
+from herokrondir import get_datafile
 
 
 def main():
-    values = [[key, dotenv_values()[key]] for key in dotenv_values()]
     parser = ArgumentParser()
-    parser.add_argument("--heroku-num", type=str, default=False)
-    parser.add_argument("--heroku-key", type=str, default=False)
-    parser.add_argument("--discord-webhook", type=str, default=False)
-    parser.add_argument("--discord-color", type=str, default=False)
+    parser.add_argument("--add-key",
+                        help="Adds the Heroku API key specified.",
+                        default=False)
+    parser.add_argument("--remove-key", 
+                        help="Removes the Heroku API key specified.",
+                        default=False)
+    parser.add_argument("--set-webhook",
+                        help="Sets the Discord Webhook URL for logging (OPTIONAL)",
+                        default=False)
+    parser.add_argument("--set-color",
+                        help="Sets the Discord Embed Color for logging (OPTIONAL)",
+                        default=False)
+    parser.add_argument("--values", 
+                        help="Prints stored values.",
+                        nargs="?",
+                        default=False) 
     options = parser.parse_args()
-    _heroku_key = options.heroku_key
-    _heroku_num = options.heroku_num
-    _discord_webhook = options.discord_webhook
-    _discord_color = options.discord_color
+    env_keys = dotenv_values(get_datafile())
+    values = [[key, env_keys[key]] for key in env_keys]
     keys = [sublist[0] for sublist in values]
-    if bool(_heroku_key) != bool(_heroku_num):
-        parser.print_help()
-    if bool(_heroku_num) and not _heroku_num.isdigit():
-        parser.print_help()
-    if bool(_heroku_key):
-        if f"HEROKU_KEY{_heroku_num}" in keys:
-            values[keys.index(f"HEROKU_KEY{_heroku_num}")][1] = _heroku_key
+    _add_key = options.add_key
+    _remove_key = options.remove_key
+    _webhook = options.set_webhook 
+    _color = options.set_color
+    _values = options.values
+    print(_values)
+    if bool(_add_key):
+        values.append([f"HEROKU_KEY_{_add_key[:5]}".upper(), _add_key])
+    if bool(_remove_key):
+        if f"HEROKU_KEY_{_remove_key[:5]}".upper() in keys:
+            del values[keys.index(f"HEROKU_KEY_{_remove_key[:5]}".upper())]
+    if bool(_webhook):
+        if "WEBHOOK" in keys:
+            values[keys.index("WEBHOOK")][1] = _webhook
         else:
-            values.append([f"HEROKU_KEY{_heroku_num}", _heroku_key])
-    if bool(_discord_webhook):
-        if "DISCORD_WEBHOOK" in keys:
-            values[keys.index("DISCORD_WEBHOOK")][1] = _discord_webhook
+            values.append(["WEBHOOK", _webhook])
+    if bool(_color):
+        if "COLOR" in keys:
+            values[keys.index("COLOR")][1] = _color
         else:
-            values.append(["DISCORD_WEBHOOK", _discord_webhook])
-    if bool(_discord_color):
-        if "DISCORD_COLOR" in keys:
-            values[keys.index("DISCORD_COLOR")][1] = _discord_color
-        else:
-            values.append(["DISCORD_COLOR", _discord_color])
-    pprint(values)
-    with open(".env", "w") as file:
-        print(realpath(".env"))
+            values.append(["COLOR", _color])
+    with open(get_datafile(), "w") as file:
         for key, value in values:
             file.write(f"{key}={value}\n")
-
+    if _values is None:
+        for key, value in values:
+            print({key: value})
 
 if __name__ == "__main__":
     main()
