@@ -176,7 +176,6 @@ def main():
                         nargs="?",
                         default=None)
     options = parser.parse_args()
-    print(options)
     _func = options.func
     _app = options.app
     if _func not in globals():

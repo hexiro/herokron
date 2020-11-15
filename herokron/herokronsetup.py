@@ -66,12 +66,11 @@ def main():
     _webhook = options.set_webhook 
     _color = options.set_color
     _values = options.values
-    print(_values)
     if bool(_add_key):
-        values.append([f"HEROKU_KEY_{_add_key[:5]}".upper(), _add_key])
+        values.append([f"HEROKU_KEY_{_add_key.replace('-', '_')}".upper(), _add_key])
     if bool(_remove_key):
-        if f"HEROKU_KEY_{_remove_key[:5]}".upper() in keys:
-            del values[keys.index(f"HEROKU_KEY_{_remove_key[:5]}".upper())]
+        if f"HEROKU_KEY_{_remove_key.replace('-', '_')}".upper() in keys:
+            del values[keys.index(f"HEROKU_KEY_{_remove_key.replace('-', '_')}".upper())]
     if bool(_webhook):
         if "WEBHOOK" in keys:
             values[keys.index("WEBHOOK")][1] = _webhook
@@ -87,7 +86,10 @@ def main():
             file.write(f"{key}={value}\n")
     if _values is None:
         for key, value in values:
-            print({key: value})
+            if key.startswith("HEROKU_KEY"):
+                print({"HEROKU_KEY": value})
+            else:
+                print({key: value})
 
 if __name__ == "__main__":
     main()
