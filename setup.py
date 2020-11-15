@@ -9,7 +9,7 @@ with open("requirements.txt", encoding="utf-8") as req_file:
 
 setup(
     name="herokron",
-    version="1.9.1",
+    version="1.9.3",
     description=(
         "Herokron is a mainly command line app used to make updating Heroku apps easy between accounts."
     ),
