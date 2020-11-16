@@ -13,12 +13,11 @@ Herokron is an app used to make updating [Heroku](https://heroku.com/) apps easy
 
 ## 📦 Installation
 
-Clone the [GitHub](https://github.com/Hexiro/Herokron) repository.
+Install the package with pip.
 
-
-    $ git clone https://github.com/Hexiro/Herokron/
-    $ cd Herokron
-    $ pip3 install -r requirements.txt
+```console
+pip3 install git+https://github.com/Hexiro/Herokron@main
+```
 
 
 ## 💾 Setup
@@ -84,4 +83,4 @@ Herokron.apps_list() # .py
 
 
 ## Contributing
-Pull requests are always 100% welcomed and appreciated. One possible area of improvement would be caching which key correlates to which app to prevent unnecessary API calls.
+Pull requests are always 100% welcomed and appreciated. Some possible areas of improvement would be caching which key correlates to which app to prevent unnecessary API calls, and optimizing how the get_datafile function is used so it isn't written twice.
