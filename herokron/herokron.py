@@ -59,7 +59,7 @@ def log_message(func, title):
     log_embed = Embed(color=int(environ.get("COLOR", 171516), 16))
     log_embed.add_field(name="Function", value=func)
     log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
-    log_embed.set_footer(text=f"heroku-test-app • {datetime.now():%I:%M %p}")
+    log_embed.set_footer(text=f"{title} • {datetime.now():%I:%M %p}")
     hook.send(embed=log_embed)
 
 
@@ -113,7 +113,7 @@ class Herokron:
             returns.append(_on)
             return _on
         self.app.process_formation()[self.proc_type].scale(1)
-        _on = {"changed": True, "online": True, "app": "heroku-test-app"}
+        _on = {"changed": True, "online": True, "app": self.app.name}
         returns.append(_on)
         return _on
 
