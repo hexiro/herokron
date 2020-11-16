@@ -1,6 +1,7 @@
+from sys import platform
+from sys import argv
 from dotenv import dotenv_values
 from argparse import ArgumentParser
-from sys import platform
 from pathlib import Path
 
 
@@ -42,30 +43,41 @@ except FileExistsError:
 def main():
     parser = ArgumentParser()
     parser.add_argument("--add-key",
+                        "-ak",
                         help="Adds the Heroku API key specified.",
                         default=False)
-    parser.add_argument("--remove-key", 
+    parser.add_argument("--remove-key",
+                        "-rk",
                         help="Removes the Heroku API key specified.",
                         default=False)
     parser.add_argument("--set-webhook",
-                        help="Sets the Discord Webhook URL for logging (OPTIONAL)",
-                        default=False)
+                        "-w",
+                        help="Sets the Discord Webhook URL for logging.",
+                        default=False)            
     parser.add_argument("--set-color",
-                        help="Sets the Discord Embed Color for logging (OPTIONAL)",
-                        default=False)
-    parser.add_argument("--values", 
+                        "-c",
+                        help="Sets the Discord Embed Color.",
+                        default=False)                  
+    parser.add_argument("--print",
+                        "-p",
                         help="Prints stored values.",
                         nargs="?",
                         default=False) 
+    if len(argv) == 1:
+        parser.print_help()
+        return
+    
     options = parser.parse_args()
     env_keys = dotenv_values(get_datafile())
     values = [[key, env_keys[key]] for key in env_keys]
     keys = [sublist[0] for sublist in values]
+
     _add_key = options.add_key
     _remove_key = options.remove_key
-    _webhook = options.set_webhook 
+    _webhook = options.set_webhook
     _color = options.set_color
-    _values = options.values
+    _print = options.print
+
     if bool(_add_key):
         values.append([f"HEROKU_KEY_{_add_key.replace('-', '_')}".upper(), _add_key])
     if bool(_remove_key):
@@ -84,7 +96,7 @@ def main():
     with open(get_datafile(), "w") as file:
         for key, value in values:
             file.write(f"{key}={value}\n")
-    if _values is None:
+    if _print is None:
         for key, value in values:
             if key.startswith("HEROKU_KEY"):
                 print({"HEROKU_KEY": value})

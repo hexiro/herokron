@@ -56,7 +56,7 @@ returns = []
 
 def log_message(func, title):
     hook = Webhook(environ["WEBHOOK"])
-    log_embed = Embed(color=int(environ["COLOR"], 16))
+    log_embed = Embed(color=int(environ.get("COLOR", 171516), 16))
     log_embed.add_field(name="Function", value=func)
     log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
     log_embed.set_footer(text=f"{title} • {datetime.now():%I:%M %p}")
@@ -175,16 +175,23 @@ def main():
                         help="The name of the Heroku app.",
                         nargs="?",
                         default=None)
+    parser.add_argument("--no-log",
+                        "-nl",
+                        nargs="?",
+                        help="Stops this iteration from logging.",
+                        default=False)
     options = parser.parse_args()
     _func = options.func
     _app = options.app
+    _no_log = options.no_log
     if _func not in globals():
         parser.print_help()
         exit(1)
     if bool(_app) and _func in ["on", "off"]:
         print(globals()[_func](_app))
         if environ.get("WEBHOOK", None) is not None:
-            log_message(_func, _app)
+            if _no_log is False:
+                log_message(_func, _app)
     elif bool(_app):
         print(globals()[_func](_app))
     else:
