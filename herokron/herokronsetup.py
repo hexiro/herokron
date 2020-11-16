@@ -43,11 +43,11 @@ except FileExistsError:
 def main():
     parser = ArgumentParser()
     parser.add_argument("--add-key",
-                        "-ak",
+                        "-a",
                         help="Adds the Heroku API key specified.",
                         default=False)
     parser.add_argument("--remove-key",
-                        "-rk",
+                        "-r",
                         help="Removes the Heroku API key specified.",
                         default=False)
     parser.add_argument("--set-webhook",
