@@ -15,7 +15,7 @@ Herokron is an app used to make updating [Heroku](https://heroku.com/) apps easy
 
 Install the package with pip.
 
-```console
+```
 pip3 install git+https://github.com/Hexiro/Herokron@main
 ```
 
@@ -48,7 +48,10 @@ ex.
 ```console
 herokron function [app]
 ```
-
+Or if you don't want to print logs, use:
+```console
+herokron function [app] --no-log
+```
 #### Import
 ```Python
 import Herokron
