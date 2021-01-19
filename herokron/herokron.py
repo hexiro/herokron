@@ -15,8 +15,8 @@ from dhooks import Embed
 from dhooks import Webhook
 from requests import HTTPError
 
-from exceptions import AppWithoutProcfile, InvalidWebhook
-from exceptions import InvalidAPIKey
+from .exceptions import AppWithoutProcfile, InvalidWebhook
+from .exceptions import InvalidAPIKey
 
 home = expanduser('~')
 
