@@ -22,7 +22,7 @@ pip3 install git+https://github.com/Hexiro/Herokron
 
 ## 💾 Setup
 
-Use the setup script to load values. Supply all the keys you have, there is no limit.
+Supply all the keys you have, there is no limit.
 ```console
 $ Herokron --add-key {key} 
 $ Herokron --set-webhook {discord_webhook}
@@ -64,12 +64,12 @@ Herokron.apps_list() # .py
 If you find that this app isn't working with cron you will need to specify the Herokron path. In the following example the cron job specified will run everyday at 8 am.
 
 ### console
-```console
+```
 $ which herokron
 /home/pi/.local/bin/herokron
 ```
 ### crontab
-```console
+```
 0 8 * * * python3 /home/pi/.local/bin/herokron -on [app]
 ```
 
