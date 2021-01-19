@@ -46,5 +46,7 @@ setup(
         "Python3",
         "Heroku",
         "Herokron",
+        "Cron",
+        "Crontab"
     ],
 )

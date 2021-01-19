@@ -42,13 +42,13 @@ calls = []
 returns = []
 
 
-def log_embed(action, app):
+def log_embed(action: str, app: str):
     color = database["color"]
     if not isinstance(color, int):
         color = int(color, 16)
     log_embed = Embed(color=color)
-    log_embed.add_field(name="Response", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
     log_embed.add_field(name="Action", value=action)
+    log_embed.add_field(name="Response", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
     log_embed.set_footer(text=f"{app}  |  {datetime.now():%b %d %I:%M %p}")
     return log_embed
 
@@ -78,7 +78,6 @@ class Herokron:
 
     def state(self):
         """
-
         :return: The dict with one key `online` which will be T/F.
         """
         _is_on = {"online": bool(self.app.process_formation()[self.proc_type].quantity), "app": self.app.name}
@@ -87,7 +86,6 @@ class Herokron:
 
     def on(self):
         """
-
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
         _state = self.state()
@@ -102,7 +100,6 @@ class Herokron:
 
     def off(self):
         """
-
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
         _state = self.state()
@@ -116,25 +113,23 @@ class Herokron:
         return _off
 
 
-def on(name):
+def on(name: str):
     """
-
     :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with two keys `changed` and `online` which will be T/F.
     """
     return Herokron(name).on()
 
 
-def off(name):
+def off(name: str):
     """
-
     :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with two keys `changed` and `online` which will be T/F.
     """
     return Herokron(name).off()
 
 
-def state(name):
+def state(name: str):
     """
     :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with one key `online` which will be T/F.
@@ -144,7 +139,6 @@ def state(name):
 
 def apps_list():
     """
-
     :return: A list of all Heroku apps associated with the API keys set in the local database.
     """
     return [item for sublist in [key["apps"] for key in database["keys"]] for item in sublist]
@@ -152,7 +146,7 @@ def apps_list():
 
 def refresh_apps_list(write=True):
     """
-
+    :param write: Determines weather to write to file instantly or not.
     :return: A list of Heroku apps associated with the API keys set in the local database.
     """
     for key in database["keys"]:
@@ -161,9 +155,10 @@ def refresh_apps_list(write=True):
     return apps_list()
 
 
-def refresh_apps(key, write=True):
+def refresh_apps(key: str, write=True):
     """
     :param key: Heroku API Key
+    :param write: Determines weather to write to file instantly or not.
     :return: A list of all apps associated with `key`
     """
     search = list(filter(lambda keys: keys["key"] == key, database["keys"]))
@@ -175,9 +170,8 @@ def refresh_apps(key, write=True):
     return apps
 
 
-def key_from_app(name):
+def key_from_app(name: str):
     """
-
     :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A string containing the API key of the app. Should only be directly called by Herokron class to prevent tracebacks.
     """
@@ -300,10 +294,9 @@ def main():
             Webhook(database["webhook"]).send(
                 embed=log_embed(
                     func,
-                    app
+                    _log["app"]
                 )
             )
-            print(log_embed(func, app).to_dict())
         except ValueError:
             raise InvalidWebhook("Discord logging attempted with invalid webhook set in local database.")
 
