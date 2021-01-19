@@ -24,22 +24,14 @@ pip3 install git+https://github.com/Hexiro/Herokron@main
 
 Use the setup script to load values. Supply all the keys you have, there is no limit.
 ```console
-$ Herokron-Setup --add-key {key} 
-$ Herokron-Setup -w {discord_webhook}
-$ Herokron-Setup -c {discord_embed_color}
+$ Herokron --add-key {key} 
+$ Herokron -webhook {discord_webhook}
+$ Herokron -color {discord_embed_color}
 ```
-To make sure everything works properly, run:
+To simply test if everything is working run the following and make sure all your apps show up
 ```console
-$ Herokron-Setup --print
-```
-Then, your output should look something like this:
-```javascript 
-ex.
-{'HEROKU_KEY': key1}
-{'HEROKU_KEY': key2}
-{'HEROKU_KEY': key3}
-{'COLOR': 'ff0000'}
-{'WEBHOOK': 'https://discord.com/api/webhooks/channel/token'}
+$ Herokron -func all_apps
+>>> ["app_one", "app_two"]
 ```
 
 ## 📈 Usage

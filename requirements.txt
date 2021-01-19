@@ -1,3 +1,4 @@
+setuptools
 heroku3>=4.2.3
-python-dotenv>=0.15.0
 dhooks>=1.1.4
+requests>=2.25.1

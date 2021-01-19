@@ -1,79 +1,66 @@
 from json import load, dump
-from sys import exit, argv
+from sys import argv
 from sys import platform
-from os import environ
+from os.path import expanduser
+from os.path import abspath
+from os.path import exists
+from os import mkdir
 from inspect import isfunction
 from inspect import ismethod
 from datetime import datetime
 from argparse import ArgumentParser
-from pathlib import Path
 
 from heroku3 import from_key
 from dhooks import Embed
 from dhooks import Webhook
+from requests import HTTPError
 
+from exceptions import AppWithoutProcfile, InvalidWebhook
+from exceptions import InvalidAPIKey
 
-def get_datadir() -> Path:
+home = expanduser('~')
 
-    """
-    Returns a parent directory path
-    where persistent application data can be stored.
+if platform == "win32":
+    database_directory = abspath(f"{home}/AppData/Roaming/Herokron")
+elif platform == "linux":
+    database_directory = abspath(f"{home}/.local/share/Herokron")
+elif platform == "darwin":
+    database_directory = abspath(f"{home}Library/Application Support/Herokron")
+else:
+    raise OSError("Unsupported OS. View Lines 24-30 and submit a pull request to add OS.")
 
-    # linux: ~/.local/share
-    # macOS: ~/Library/Application Support
-    # windows: C:/Users/<USER>/AppData/Roaming
-    """
+database_file = abspath(f"{database_directory}/db.json")
 
-    home = Path.home()
+if not exists(database_directory):
+    mkdir(database_directory)
 
-    if platform == "win32":
-        return home / "AppData/Roaming/Herokron"
-    elif platform == "linux":
-        return home / ".local/share/Herokron"
-    elif platform == "darwin":
-        return home / "Library/Application Support/Herokron"
+if not exists(database_file):
+    dump({"keys": [], "color": 0x171516, "webhook": ""}, open(database_file, "x"))
 
-
-def get_datafile() -> Path:
-    return get_datadir() / "db.json"
-
-
-try:
-    get_datadir().mkdir(parents=True)
-except FileExistsError:
-    pass
-try:
-    dump({"keys": [], "color": 0x4169e1, "webhook": ""}, open(get_datafile(), "x"))
-except FileExistsError:
-    pass
-
-
-database = load(open(get_datafile()))
+database = load(open(database_file, "r"))
 calls = []
 returns = []
 
 
-def log_message(func, title):
-    hook = Webhook(environ["WEBHOOK"])
-    log_embed = Embed(color=int(environ.get("COLOR", 171516), 16))
-    log_embed.add_field(name="Function", value=func)
-    log_embed.add_field(name="Returned", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1]]))
-    log_embed.set_footer(text=f"{title} • {datetime.now():%I:%M %p}")
-    hook.send(embed=log_embed)
-
-
-class AppWithoutProcfile(Exception):
-    pass
+def log_embed(action, app):
+    color = database["color"]
+    if not isinstance(color, int):
+        color = int(color, 16)
+    log_embed = Embed(color=color)
+    log_embed.add_field(name="Response", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
+    log_embed.add_field(name="Action", value=action)
+    log_embed.set_footer(text=f"{app}  |  {datetime.now():%b %d %I:%M %p}")
+    return log_embed
 
 
 class Herokron:
 
     def __init__(self, app=None):
-        self.keys = database["keys"]
+        self.keys = [item["key"] for item in database["keys"]]
         if app is not None:
-            if app not in all_apps():
-                refresh_all_apps()
-            if app in all_apps():
+            if app not in apps_list():
+                refresh_apps_list()
+            if app in apps_list():
                 self.heroku = from_key(key_from_app(app))
                 self.app = self.heroku.app(app)
         if not hasattr(self, "heroku"):
@@ -89,16 +76,7 @@ class Herokron:
             calls.append(returned.__name__)
         return returned
 
-    def apps_list(self):
-        """
-
-        :return: `apps_list` returns all Heroku apps associated with the API keys set in the .env.
-        """
-        _apps_list = [item.name for it in [app for app in [from_key(key).apps() for key in self.keys]] for item in it]
-        returns.append(_apps_list)
-        return _apps_list
-
-    def is_on(self):
+    def state(self):
         """
 
         :return: The dict with one key `online` which will be T/F.
@@ -112,8 +90,8 @@ class Herokron:
 
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
-        _is_on = self.is_on()
-        if _is_on["online"] :
+        _state = self.state()
+        if _state["online"]:
             _on = {"changed": False, "online": True, "app": self.app.name}
             returns.append(_on)
             return _on
@@ -127,8 +105,8 @@ class Herokron:
 
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
-        _is_on = self.is_on()
-        if not _is_on["online"]:
+        _state = self.state()
+        if not _state["online"]:
             _off = {"changed": False, "online": False, "app": self.app.name}
             returns.append(_off)
             return _off
@@ -138,18 +116,10 @@ class Herokron:
         return _off
 
 
-def apps_list():
-    """
-
-    :return: `apps_list` returns all Heroku apps associated with the API keys set in the .env.
-    """
-    return Herokron().apps_list()
-
-
 def on(name):
     """
 
-    :param name: The name of the Heroku app to change. If name is not associated with any account set in the .env, the first key and first app will be used.
+    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with two keys `changed` and `online` which will be T/F.
     """
     return Herokron(name).on()
@@ -158,28 +128,44 @@ def on(name):
 def off(name):
     """
 
-    :param name: The name of the Heroku app to change. If name is not associated with any account set in the .env, the first key and first app will be used.
+    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with two keys `changed` and `online` which will be T/F.
     """
     return Herokron(name).off()
 
 
-def is_on(name):
+def state(name):
     """
-    :param name: The name of the Heroku app to change. If name is not associated with any account set in the .env, the first key and first app will be used.
+    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
     :return: A dict with one key `online` which will be T/F.
     """
-    return Herokron(name).is_on()
+    return Herokron(name).state()
 
 
-def refresh_all_apps(write=True):
+def apps_list():
+    """
+
+    :return: A list of all Heroku apps associated with the API keys set in the local database.
+    """
+    return [item for sublist in [key["apps"] for key in database["keys"]] for item in sublist]
+
+
+def refresh_apps_list(write=True):
+    """
+
+    :return: A list of Heroku apps associated with the API keys set in the local database.
+    """
     for key in database["keys"]:
         key = key["key"]
         refresh_apps(key, write)
-    return all_apps()
+    return apps_list()
 
 
 def refresh_apps(key, write=True):
+    """
+    :param key: Heroku API Key
+    :return: A list of all apps associated with `key`
+    """
     search = list(filter(lambda keys: keys["key"] == key, database["keys"]))
     index = database["keys"].index(search[0])
     apps = [app.name for app in from_key(key).apps()]
@@ -189,53 +175,60 @@ def refresh_apps(key, write=True):
     return apps
 
 
-def all_apps():
-    return [item for sublist in [key["apps"] for key in database["keys"]] for item in sublist]
+def key_from_app(name):
+    """
 
-
-def key_from_app(app):
+    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
+    :return: A string containing the API key of the app. Should only be directly called by Herokron class to prevent tracebacks.
+    """
     for num in range(len(database["keys"])):
-        if app in database["keys"][num]["apps"]:
+        if name in database["keys"][num]["apps"]:
             return database["keys"][num]["key"]
 
 
 def dump_database():
-    dump(database, open(get_datafile(), "w"))
+    dump(database, open(database_file, "w"))
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-func",
-                        help="The name of the function to call.",
+    parser.add_argument("-on",
+                        help="Calls the `on` function to turn an app on.",
                         nargs="?",
-                        default=None)
-    parser.add_argument("-app",
-                        help="The name of the Heroku app.",
+                        default=False)
+    parser.add_argument("-off",
+                        help="Calls the `off` function to turn an app on.",
                         nargs="?",
-                        default=None)
+                        default=False)
+    parser.add_argument("-state",
+                        help="Calls the `state` function view the current state of an app.",
+                        nargs="?",
+                        default=False)
+    parser.add_argument("-apps-list",
+                        help="Calls the `apps_list` function to view all connected apps.",
+                        nargs="?",
+                        default=False)
     parser.add_argument("--no-log",
-                        "-nl",
                         nargs="?",
                         help="Stops this iteration from logging.",
                         default=False)
     parser.add_argument("--add-key",
-                        "-a",
+                        "-add",
                         help="Adds the Heroku API key specified.",
                         default=False)
     parser.add_argument("--remove-key",
-                        "-r",
+                        "-remove",
                         help="Removes the Heroku API key specified.",
                         default=False)
     parser.add_argument("--set-webhook",
-                        "-w",
+                        "-webhook",
                         help="Sets the Discord Webhook URL for logging.",
                         default=False)
     parser.add_argument("--set-color",
-                        "-c",
+                        "-color",
                         help="Sets the Discord Embed Color.",
                         default=False)
     parser.add_argument("--no-print",
-                        "-p",
                         help="Doesn't print stored values.",
                         nargs="?",
                         default=False)
@@ -249,12 +242,16 @@ def main():
     _remove_key = options.remove_key
     _webhook = options.set_webhook
     _color = options.set_color
+    _no_log = options.no_log
     _no_print = options.no_print
 
     if _add_key:
-        if not list(filter(lambda keys: keys["key"] == _add_key, database["keys"])):
-            database["keys"].append({"key": _add_key, "apps": []})
-            refresh_apps(_add_key, write=False)
+        try:
+            if not list(filter(lambda keys: keys["key"] == _add_key, database["keys"])):
+                database["keys"].append({"key": _add_key, "apps": []})
+                refresh_apps(_add_key, write=False)
+        except HTTPError:
+            raise InvalidAPIKey("Invalid Heroku API Key. View your API Key at: https://dashboard.heroku.com/account.")
     if _remove_key:
         search = list(filter(lambda keys: keys["key"] == _remove_key, database["keys"]))
         if search:
@@ -262,26 +259,53 @@ def main():
     if _webhook:
         database["webhook"] = _webhook
     if _color:
-        database["color"] = _color
+        database["color"] = int(_color, 16)
     if any([_add_key, _remove_key, _webhook, _color]):
         dump_database()
         if _no_print is False:
             print(database)
 
-    _func = options.func
-    _app = options.app
-    _no_log = options.no_log
+    _on = options.on
+    _off = options.off
+    _apps_list = options.apps_list
+    _state = options.state
 
-    if _app and _func in ["on", "off"]:
-        if _no_print is False:
-            print(globals()[_func](_app))
-        if database["webhook"]:
-            if _no_log is not False:
-                log_message(_func, _app)
-    elif _app:
-        print(globals()[_func](_app))
-    elif _func:
-        print(globals()[_func]())
+    if _on is not False:
+        func = "on"
+        app = _on
+    elif _off is not False:
+        func = "off"
+        app = _off
+    elif _apps_list is not False:
+        func = "refresh_apps_list"
+        app = None
+    elif _state is not False:
+        func = "state"
+        app = _state
+    else:
+        return
+
+    if func != "refresh_apps_list" and app is None:
+        parser.print_help()
+        return
+
+    if app:
+        _log = globals()[func](app)
+    else:
+        _log = globals()[func]()
+    if _no_print is False:
+        print(_log)
+    if _no_log is False and func in ["on", "off"]:
+        try:
+            Webhook(database["webhook"]).send(
+                embed=log_embed(
+                    func,
+                    app
+                )
+            )
+            print(log_embed(func, app).to_dict())
+        except ValueError:
+            raise InvalidWebhook("Discord logging attempted with invalid webhook set in local database.")
 
 
 if __name__ == "__main__":
