@@ -70,7 +70,7 @@ $ which herokron
 ```
 ### crontab
 ```
-0 8 * * * python3 /home/pi/.local/bin/herokron -on [app]
+0 8 * * * /home/pi/.local/bin/herokron -on [app]
 ```
 
 
