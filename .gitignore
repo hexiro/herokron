@@ -1,3 +1,7 @@
 .idea/
 __pycache__/
+herokron.egg-info/
+dist/
+build/
+./herokron/idea/
 ./herokron/__pycache__/

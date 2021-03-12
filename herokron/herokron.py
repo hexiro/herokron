@@ -1,13 +1,6 @@
-from json import load, dump
 from sys import argv
-from sys import platform
-from os.path import expanduser
-from os.path import abspath
-from os.path import exists
-from os import mkdir
 from inspect import isfunction
 from inspect import ismethod
-from datetime import datetime
 from argparse import ArgumentParser
 
 from heroku3 import from_key
@@ -15,42 +8,14 @@ from dhooks import Embed
 from dhooks import Webhook
 from requests import HTTPError
 
+from .database import load_database, dump_database
 from .exceptions import AppWithoutProcfile, InvalidWebhook
 from .exceptions import InvalidAPIKey
 
-home = expanduser('~')
 
-if platform == "win32":
-    database_directory = abspath(f"{home}/AppData/Roaming/Herokron")
-elif platform == "linux":
-    database_directory = abspath(f"{home}/.local/share/Herokron")
-elif platform == "darwin":
-    database_directory = abspath(f"{home}Library/Application Support/Herokron")
-else:
-    raise OSError("Unsupported OS. View Lines 24-30 and submit a pull request to add OS.")
-
-database_file = abspath(f"{database_directory}/db.json")
-
-if not exists(database_directory):
-    mkdir(database_directory)
-
-if not exists(database_file):
-    dump({"keys": [], "color": 0x171516, "webhook": ""}, open(database_file, "x"))
-
-database = load(open(database_file, "r"))
+database = load_database()
 calls = []
 returns = []
-
-
-def log_embed(action: str, app: str):
-    color = database["color"]
-    if not isinstance(color, int):
-        color = int(color, 16)
-    log_embed = Embed(color=color)
-    log_embed.add_field(name="Action", value=action)
-    log_embed.add_field(name="Response", value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
-    log_embed.set_footer(text=f"{app}  |  {datetime.now():%b %d %I:%M %p}")
-    return log_embed
 
 
 class Herokron:
@@ -63,11 +28,14 @@ class Herokron:
             if app in apps_list():
                 self.heroku = from_key(key_from_app(app))
                 self.app = self.heroku.app(app)
+
         if not hasattr(self, "heroku"):
             self.heroku = from_key(self.keys[0])
             self.app = self.heroku.app(self.heroku.apps()[0].name)
+
         if not self.app.process_formation():
             raise AppWithoutProcfile("App hasn't explicitly stated weather it's a worker or a web app.")
+
         self.proc_type = "worker" if "worker" in self.app.process_formation() else "web"
 
     def __getattribute__(self, name):
@@ -166,7 +134,7 @@ def refresh_apps(key: str, write=True):
     apps = [app.name for app in from_key(key).apps()]
     database["keys"][index]["apps"] = apps
     if write:
-        dump_database()
+        dump_database(database)
     return apps
 
 
@@ -178,10 +146,6 @@ def key_from_app(name: str):
     for num in range(len(database["keys"])):
         if name in database["keys"][num]["apps"]:
             return database["keys"][num]["key"]
-
-
-def dump_database():
-    dump(database, open(database_file, "w"))
 
 
 def main():
@@ -245,7 +209,7 @@ def main():
                 database["keys"].append({"key": _add_key, "apps": []})
                 refresh_apps(_add_key, write=False)
         except HTTPError:
-            raise InvalidAPIKey("Invalid Heroku API Key. View your API Key at: https://dashboard.heroku.com/account.")
+            raise InvalidAPIKey("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
     if _remove_key:
         search = list(filter(lambda keys: keys["key"] == _remove_key, database["keys"]))
         if search:
@@ -255,7 +219,7 @@ def main():
     if _color:
         database["color"] = int(_color, 16)
     if any([_add_key, _remove_key, _webhook, _color]):
-        dump_database()
+        dump_database(database)
         if _no_print is False:
             print(database)
 
@@ -291,12 +255,16 @@ def main():
         print(_log)
     if _no_log is False and func in ["on", "off"]:
         try:
-            Webhook(database["webhook"]).send(
-                embed=log_embed(
-                    func,
-                    _log["app"]
-                )
-            )
+            color = database["color"]
+            if not isinstance(color, int):
+                color = int(color, 16)
+            log_embed = Embed(color=color)
+            log_embed.add_field(name="Action", value=func)
+            log_embed.add_field(name="Response",
+                                value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
+            log_embed.set_footer(text=_log["app"])
+            log_embed.set_timestamp(now=True)
+            Webhook(database["webhook"]).send(embed=log_embed)
         except ValueError:
             raise InvalidWebhook("Discord logging attempted with invalid webhook set in local database.")
 
