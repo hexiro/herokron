@@ -1,7 +1,7 @@
 ## Herokron
 
 
-Herokron is a python package used to make updating [Heroku](https://heroku.com/) apps easy especially between accounts. I made this to be used as a cron job hence the ending *kron*, so the main used of this is from the command line, but the file can also be imported. Optionally, all on/off state changes called from the command line are logged in a discord server by a webhook.
+Herokron is a python package used to make switching [Heroku](https://heroku.com/) apps on/off easy, especially between accounts. The primary use case is from the command line in the form of a cron job (hence the ending *kron*), but Herokron does work in a python file. Optionally, all on/off state changes called from the command line are logged in a discord server by a webhook.
 
 ![Forks](https://img.shields.io/github/forks/Hexiro/Herokron)
 ![Stars](https://img.shields.io/github/stars/Hexiro/Herokron)
@@ -22,7 +22,7 @@ pip3 install git+https://github.com/Hexiro/Herokron
 
 ## 💾 Setup
 
-Supply all the keys you have, there is no limit.
+Load all the keys you have, there is no limit.
 ```console
 $ Herokron --add-key {key} 
 $ Herokron --set-webhook {discord_webhook}
@@ -61,9 +61,16 @@ Herokron.apps_list() # .py
 ```
 
 # ⌛ Cron
-If you find that this app isn't working with cron you will need to specify the Herokron path. In the following example the cron job specified will run everyday at 8 am.
+The following example will start a Heroku app everyday at 8 am.
 
-### console
+### crontab
+```
+0 8 * * * herokron -on [app]
+```
+
+If this isn't working, cron is most likely just having issues finding Herokron. If this happens, you will need to specify the Herokron path. 
+
+### command line
 ```
 $ which herokron
 /home/pi/.local/bin/herokron
@@ -75,4 +82,4 @@ $ which herokron
 
 
 # Contributing
-Pull requests are always 100% welcomed and appreciated. Right now I have no way of Testing Mac OS, and other linux distributions. All modern operating systems should work, as operating system is only needed to find database file location. 
+Pull requests are always 100% welcomed and appreciated. Right now, I have no way of Testing Mac OS and other Linux distributions. All modern operating systems should work. Operation system is only used to find the local database file. 
