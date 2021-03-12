@@ -191,7 +191,7 @@ def main():
                         nargs="?",
                         default=False)
     parser.add_argument("-off",
-                        help="Calls the `off` function to turn an app on.",
+                        help="Calls the `off` function to turn an app off.",
                         nargs="?",
                         default=False)
     parser.add_argument("-state",
