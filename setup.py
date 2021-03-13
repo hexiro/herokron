@@ -22,8 +22,7 @@ setup(
     packages=["herokron"],
     entry_points={
         "console_scripts": [
-            "herokron = herokron.herokron:main",
-            "herokron-setup = herokron.herokronsetup:main"
+            "herokron = herokron.herokron:main"
         ]
     },
     python_requires=">=3.6",
