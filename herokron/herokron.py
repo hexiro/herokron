@@ -1,11 +1,8 @@
 from sys import argv
-from inspect import isfunction
-from inspect import ismethod
 from argparse import ArgumentParser
 
+from dhooks import Webhook, Embed
 from heroku3 import from_key
-from dhooks import Embed
-from dhooks import Webhook
 from requests import HTTPError
 
 from .database import DatabaseUtility
@@ -13,8 +10,6 @@ from .exceptions import AppWithoutProcfile, InvalidAPIKey, InvalidEmbedSettings,
 
 
 database = DatabaseUtility()
-calls = []
-returns = []
 
 
 class Herokron:
@@ -37,48 +32,46 @@ class Herokron:
         # In heroku, nodejs will often show up as both web and worker.
         # it's kind of bad to assume it will be worker so I might change that in the future.
         self.proc_type = "worker" if "worker" in self.app.process_formation() else "web"
+        self.dynos = self.app.process_formation()[self.proc_type]
 
-    def __getattribute__(self, name):
-        returned = object.__getattribute__(self, name)
-        if isfunction(returned) or ismethod(returned):
-            calls.append(returned.__name__)
-        return returned
+    @property
+    def online(self):
+        return bool(self.dynos.quantity)
+
+    @property
+    def offline(self):
+        return not self.online
 
     def state(self):
         """
         :return: The dict with one key `online` which will be T/F.
         """
-        _is_on = {"online": bool(self.app.process_formation()[self.proc_type].quantity), "app": self.app.name}
-        returns.append(_is_on)
-        return _is_on
+        return {
+            "online": self.online,
+            "name": self.app.name
+        }
 
     def on(self):
         """
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
-        _state = self.state()
-        if _state["online"]:
-            _on = {"changed": False, "online": True, "app": self.app.name}
-            returns.append(_on)
-            return _on
-        self.app.process_formation()[self.proc_type].scale(1)
-        _on = {"changed": True, "online": True, "app": self.app.name}
-        returns.append(_on)
-        return _on
+        completion_dict = {"online": True, "app": self.app.name}
+        if self.online:
+            return {"changed": False, **completion_dict}
+
+        self.dynos.scale(1)
+        return {"changed": True, **completion_dict}
 
     def off(self):
         """
         :return: A dict with two keys `changed` and `online` which will be T/F.
         """
-        _state = self.state()
-        if not _state["online"]:
-            _off = {"changed": False, "online": False, "app": self.app.name}
-            returns.append(_off)
-            return _off
-        self.app.process_formation()[self.proc_type].scale(0)
-        _off = {"changed": True, "online": False, "app": self.app.name}
-        returns.append(_off)
-        return _off
+        completion_dict = {"online": False, "app": self.app.name}
+        if self.offline:
+            return {"changed": False, **completion_dict}
+
+        self.dynos.scale(0)
+        return {"changed": True, **completion_dict}
 
 
 def on(name: str):
@@ -208,13 +201,22 @@ def main():
 
         if _no_print is False:
             print(_log)
+        # if function is a state change, logging is allowed, and a discord webhook is set:
         if func in {"on", "off"} and _no_log is False and database.webhook:
             try:
-                log_embed = Embed(color=database.color)
-                log_embed.add_field(name="Action", value=func)
-                log_embed.add_field(name="Response",
-                                    value="\n".join([f"{d}: {returns[-1][d]}" for d in returns[-1] if d != "app"]))
-                log_embed.set_footer(text=_log["app"])
+                if func == "on":
+                    previous = "🔴" if _log["changed"] else "🟢"   # off, on
+                else:
+                    previous = "🟢" if _log["changed"] else "🔴"   # on, off
+                current = "🟢" if _log["online"] else "🔴"
+                log_embed = Embed(
+                    title=_log["app"],
+                    description=f"**STATE:⠀{previous} → {current}**\n"
+                                "\n"
+                                "View affected app:\n"
+                                f"[heroku.com](https://dashboard.heroku.com/apps/{_log['app']})",
+                    color=database.color
+                )
                 log_embed.set_timestamp(now=True)
                 Webhook(database.webhook).send(embed=log_embed)
             except ValueError:

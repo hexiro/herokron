@@ -22,7 +22,8 @@ else:
 database_file.parents[0].mkdir(parents=True, exist_ok=True)
 if not database_file.is_file():
     with database_file.open(mode="w") as file:
-        json.dump({"keys": [], "color": 0x171516, "webhook": ""}, file)
+        # color is `Heroku Lavender` found at https://brand.heroku.com
+        json.dump({"keys": [], "color": 0x7673C0, "webhook": ""}, file)
 
 
 # we do these checks one time and hope that no one deletes the files :shrug:
