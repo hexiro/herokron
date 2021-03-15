@@ -48,7 +48,7 @@ class Herokron:
         """
         return {
             "online": self.online,
-            "name": self.app.name
+            "app": self.app.name
         }
 
     def on(self):
@@ -102,19 +102,25 @@ def state(name: str):
 
 def main():
     parser = ArgumentParser()
+    # we make the default False, so that if you don't give it an arg it will be `None` instead of `False`
+    # if you know a better way of doing this lmk!
     parser.add_argument("-on",
                         help="Calls the `on` function to turn an app on.")
     parser.add_argument("-off",
                         help="Calls the `off` function to turn an app off.")
     parser.add_argument("-state",
                         help="Calls the `state` function view the current state of an app.")
-    parser.add_argument("-apps-list",
-                        help="Calls the `apps_list` function to view all connected apps.",
+    parser.add_argument("-apps",
+                        help="Returns a list of all connected apps.",
                         nargs="?",
                         default=False)
-    parser.add_argument("--no-log",
+    parser.add_argument("-keys",
+                        help="Returns a list of all connected keys.",
                         nargs="?",
-                        help="Stops this iteration from logging.",
+                        default=False)
+    parser.add_argument("-database",
+                        help="Returns a the raw database json.",
+                        nargs="?",
                         default=False)
     parser.add_argument("--add-key",
                         "-add",
@@ -132,8 +138,12 @@ def main():
                         "-color",
                         help="Sets the Discord Embed Color.",
                         default=False)
+    parser.add_argument("--no-log",
+                        nargs="?",
+                        help="Stops this iteration from logging.",
+                        default=False)
     parser.add_argument("--no-print",
-                        help="Doesn't print stored values.",
+                        help="Stops this iteration from printing.",
                         nargs="?",
                         default=False)
     if len(argv) == 1:
@@ -151,15 +161,14 @@ def main():
     _no_log = options.no_log
     _no_print = options.no_print
 
+    # duplication checking is done inside `add_key` and `remove_key`.
     if _add_key:
         try:
-            if not database.key_exists(_add_key):
-                database.add_key(_add_key)
+            database.add_key(_add_key)
         except HTTPError:
             raise InvalidAPIKey("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
     if _remove_key:
-        if database.key_exists(_remove_key):
-            database.remove_key(_remove_key)
+        database.remove_key(_remove_key)
     if _webhook:
         database.set_webhook(_webhook)
     if _color:
@@ -171,56 +180,56 @@ def main():
 
     _on = options.on
     _off = options.off
-    _apps_list = options.apps_list
     _state = options.state
+    _database = options.database
+    _apps = options.apps
+    _keys = options.keys
 
-    if _on is not False:
-        func = "on"
-        app = _on
-    elif _off is not False:
-        func = "off"
-        app = _off
-    elif _state is not False:
-        func = "state"
-        app = _state
+    if _on:
+        log = globals()["on"](_on)
+    elif _off:
+        log = globals()["off"](_off)
+    elif _state:
+        log = globals()["state"](_state)
+    elif _database is not False:
+        log = database
+    elif _apps is not False:
+        log = database.apps
+    elif _keys is not False:
+        log = database.keys
+    else:
+        # if a `state change` is not called there is nothing else to do past this point,
+        # so we just return w/o consequences.
+        return
 
-    if any({_on, _off, _state}):
-        # this wont be referenced before assesment
-        # we only make it this far if the func and app is set
-        # even though technically we don't have an else to ensure it's set.
-        if app is None:
-            parser.print_help()
-            return
-        _log = globals()[func](app)
+    if _no_print is False:
+        print(log)
 
-        if _no_print is False:
-            print(_log)
-        # if function is a state change, logging is allowed, and a discord webhook is set:
-        if func in {"on", "off"} and _no_log is False and database.webhook:
-            try:
-                if func == "on":
-                    previous = "🔴" if _log["changed"] else "🟢"   # off, on
-                else:
-                    previous = "🟢" if _log["changed"] else "🔴"   # on, off
-                current = "🟢" if _log["online"] else "🔴"
-                log_embed = Embed(
-                    title=_log["app"],
-                    description=f"**STATE:⠀{previous} → {current}**\n"
-                                "\n"
-                                "View affected app:\n"
-                                f"[heroku.com](https://dashboard.heroku.com/apps/{_log['app']})",
-                    color=database.color
-                )
-                log_embed.set_timestamp(now=True)
-                Webhook(database.webhook).send(embed=log_embed)
-            except ValueError:
-                raise InvalidEmbedSettings("Discord logging attempted with invalid webhook set in local database."
-                                           "If your webhook is valid, please open an issue at "
-                                           "https://github.com/Hexiro/Herokron.")
-    elif _apps_list is not False:
-        apps = list(database.apps)
-        if _no_print is False:
-            print(apps)
+    # if function is a state change, logging is allowed, and a discord webhook is set:
+    if (isinstance(log, dict) and "changed" in log) and _no_log is False and database.webhook:
+        # beyond this point we know log is a state change dict
+        try:
+            match_dict = {True: "🟢", False: "🔴"}     # TRUE: Large Green Circle, FALSE: Large Red Circle
+            if log["online"]:
+                previous = match_dict[not log["changed"]]
+            else:
+                previous = match_dict[log["changed"]]
+            current = match_dict[log["online"]]        # True == online, False == offline.
+            log_embed = Embed(
+                title=log["app"],
+                # small spaces in description to split the emojis apart in a nice manner.
+                description=f"**STATE:⠀{previous}      →      {current}**\n"
+                            "\n"
+                            "View affected app:\n"
+                            f"[heroku.com](https://dashboard.heroku.com/apps/{log['app']})",
+                color=database.color
+            )
+            log_embed.set_timestamp(now=True)
+            Webhook(database.webhook).send(embed=log_embed)
+        except ValueError:
+            raise InvalidEmbedSettings("Discord logging attempted with invalid webhook set in local database."
+                                       "If your webhook is valid, please open an issue at "
+                                       "https://github.com/Hexiro/Herokron.")
 
 
 if __name__ == "__main__":
