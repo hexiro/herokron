@@ -47,11 +47,12 @@ Herokron -off [app] # command line
 Herokron.off(app) # .py
 >>> {"changed": bool, "online": bool, "app": str}
 ```
+
 ```Python
 # Returns the current state of the Heroku app.
-Herokron -state [app] # command line
-Herokron.state(app) # .py
->>> {"online": bool, "app": ""}
+Herokron - state[app]  # command line
+Herokron.status(app)  # .py
+>> > {"online": bool, "app": ""}
 ```
 ```Python
 # Returns all the apps associated with all the Heroku API keys provided.

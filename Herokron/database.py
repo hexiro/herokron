@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pathlib
 import json
 import re
@@ -7,6 +8,7 @@ import heroku3
 from requests import HTTPError
 
 from .exceptions import DatabaseError
+
 
 home = pathlib.Path.home()
 
@@ -31,7 +33,7 @@ if not database_file.is_file():
 
 
 class DatabaseUtility:
-    """ Utility to make main module more readable, and interactions with the database more robust. """
+    """ Utility to make main module more readable, and interactions with the database robust. """
 
     def __init__(self):
         self.database = json.loads(database_file.read_text(encoding="utf8"))
@@ -85,7 +87,7 @@ class DatabaseUtility:
             return search[1]["apps"]
 
     def add_key(self, key):
-        if not key in self.keys:
+        if key not in self.keys:
             try:
                 self.database["keys"].append({"key": key, "apps": [app.name for app in heroku3.from_key(key).apps()]})
                 self.dump()
@@ -106,7 +108,7 @@ class DatabaseUtility:
         search = re.match("^(?:https?://)?((canary|ptb)\\.)?discord(?:app)?\\.com/api/webhooks/(?P<id>[0-9]+)/("
                           "?P<token>[A-Za-z0-9\\.\\-\\_]+)/?$", url)
         if not search:
-            raise DatabaseError("Error trying to update embed: Invalid Webhook.")
+            raise DatabaseError("Error trying to update embed: Invalid Webhook Format.")
         url = "https://discord.com/api/webhooks/{id}/{token}".format(**search.groupdict())
         self.database["webhook"] = url
         self.dump()

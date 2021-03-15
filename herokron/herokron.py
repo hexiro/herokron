@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import sys
 from argparse import ArgumentParser
 
@@ -14,6 +16,10 @@ database = DatabaseUtility()
 class Herokron:
 
     def __init__(self, app):
+        """
+        :param app: The name of the Heroku app in which you want to change
+        :type app: str
+        """
 
         # if it doesn't exist refresh database
         if app not in database.apps:
@@ -23,14 +29,14 @@ class Herokron:
             self.app = self.heroku.app(app)
 
         # after a refresh if self.heroku still isn't defined
-        if not hasattr(self, "heroku"):
+        else:
             raise AppError("App couldn't be found in the local database.")
 
         if not self.app.process_formation():
             raise AppError("App has not process types.")
 
-        # In heroku, nodejs will often show up as both web and worker.
-        # it's kind of bad to assume it will be worker so I might change that in the future.
+        # In heroku, nodejs will often show up as both web and worker
+        # it's kind of bad to assume it will be worker, so I might change that in the future.
         self.proc_type = "worker" if "worker" in self.app.process_formation() else "web"
         self.dynos = self.app.process_formation()[self.proc_type]
 
@@ -42,9 +48,9 @@ class Herokron:
     def offline(self):
         return not self.online
 
-    def state(self):
+    def status(self):
         """
-        :return: The dict with one key `online` which will be T/F.
+        :return: dictionary containing information about the app's status
         """
         return {
             "online": self.online,
@@ -53,51 +59,58 @@ class Herokron:
 
     def on(self):
         """
-        :return: A dict with two keys `changed` and `online` which will be T/F.
+        Switches the app online, if it isn't already.
+        :return: dictionary containing information about the app
         """
         completion_dict = {"online": True, "app": self.app.name}
         if self.online:
-            return {"changed": False, **completion_dict}
+            return {"updated": False, **completion_dict}
 
         self.dynos.scale(1)
-        return {"changed": True, **completion_dict}
+        return {"updated": True, **completion_dict}
 
     def off(self):
         """
-        :return: A dict with two keys `changed` and `online` which will be T/F.
+        Switches the app offline, if it isn't already.
+        :return: dictionary containing information about the app
         """
         completion_dict = {"online": False, "app": self.app.name}
         if self.offline:
-            return {"changed": False, **completion_dict}
+            return {"updated": False, **completion_dict}
 
         self.dynos.scale(0)
-        return {"changed": True, **completion_dict}
+        return {"updated": True, **completion_dict}
 
 
-def on(name: str):
+# shorthand functions
+
+def on(app):
     """
-    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
-    :return: A dict with two keys `changed` and `online` which will be T/F.
+    Switches the app online, if it isn't already.
+    :param app: The name of the Heroku app in which you want to change
+    :type app: str
+    :return: dictionary containing information about the app
     """
-    return Herokron(name).on()
+    return Herokron(app).on()
 
 
-def off(name: str):
+def off(app):
     """
-    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in the local database, the first API key and first app will be used.
-    :return: A dict with two keys `changed` and `online` which will be T/F.
+    Switches the app offline, if it isn't already.
+    :param app: The name of the Heroku app in which you want to change
+    :type app: str
+    :return: dictionary containing information about the app
     """
-    return Herokron(name).off()
+    return Herokron(app).off()
 
 
-def state(name: str):
+def status(app):
     """
-    :param name: The name of the Heroku app to change. If this name is not associated with any accounts specified in
-    the local database, the first API key and first app will be used.
-    :return: A dict with one key `online` which
-    will be T/F.
+    :param app: The name of the Heroku app in which you want to change
+    :type app: str
+    :return: dictionary containing information about the app's status
     """
-    return Herokron(name).state()
+    return Herokron(app).status()
 
 
 def main():
@@ -158,7 +171,7 @@ def main():
 
     options = parser.parse_args()
 
-    # handle updates
+    # handle database updates
 
     _add_key = options.add_key
     _remove_key = options.remove_key
