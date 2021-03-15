@@ -1,8 +1,8 @@
-from sys import argv
+import sys
 from argparse import ArgumentParser
 
-from dhooks import Webhook, Embed
-from heroku3 import from_key
+import dhooks
+import heroku3
 from requests import HTTPError
 
 from .database import DatabaseUtility
@@ -20,7 +20,7 @@ class Herokron:
             if app not in database.apps:
                 database.sync_database()
             if app in database.apps:
-                self.heroku = from_key(database.get_key(app))
+                self.heroku = heroku3.from_key(database.get_key(app))
                 self.app = self.heroku.app(app)
 
         if not hasattr(self, "heroku"):
@@ -146,7 +146,7 @@ def main():
                         help="Stops this iteration from printing.",
                         nargs="?",
                         default=False)
-    if len(argv) == 1:
+    if len(sys.argv) == 1:
         parser.print_help()
         return
 
@@ -215,7 +215,7 @@ def main():
             else:
                 previous = match_dict[log["changed"]]
             current = match_dict[log["online"]]        # True == online, False == offline.
-            log_embed = Embed(
+            log_embed = dhooks.Embed(
                 title=log["app"],
                 # small spaces in description to split the emojis apart in a nice manner.
                 description=f"**STATE:⠀{previous}      →      {current}**\n"
@@ -225,7 +225,7 @@ def main():
                 color=database.color
             )
             log_embed.set_timestamp(now=True)
-            Webhook(database.webhook).send(embed=log_embed)
+            dhooks.Webhook(database.webhook).send(embed=log_embed)
         except ValueError:
             raise InvalidEmbedSettings("Discord logging attempted with invalid webhook set in local database."
                                        "If your webhook is valid, please open an issue at "
