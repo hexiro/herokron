@@ -1,19 +1,20 @@
 import pathlib
 import json
 import re
-from sys import platform
+import sys
 
-from heroku3 import from_key
+import heroku3
+from requests import HTTPError
 
-from .exceptions import InvalidEmbedSettings
+from .exceptions import DatabaseError
 
 home = pathlib.Path.home()
 
-if platform == "win32":
+if sys.platform == "win32":
     database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
-elif platform == "linux":
+elif sys.platform == "linux":
     database_file = home / ".local" / "share" / "Herokron" / "db.json"
-elif platform == "darwin":
+elif sys.platform == "darwin":
     database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
 else:
     raise OSError("Unsupported OS. View Lines 24-30 and submit a pull request to add OS,"
@@ -85,8 +86,11 @@ class DatabaseUtility:
 
     def add_key(self, key):
         if not key in self.keys:
-            self.database["keys"].append({"key": key, "apps": [app.name for app in from_key(key).apps()]})
-            self.dump()
+            try:
+                self.database["keys"].append({"key": key, "apps": [app.name for app in heroku3.from_key(key).apps()]})
+                self.dump()
+            except HTTPError:
+                raise DatabaseError("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
         return self.database
 
     def remove_key(self, key):
@@ -102,7 +106,7 @@ class DatabaseUtility:
         search = re.match("^(?:https?://)?((canary|ptb)\\.)?discord(?:app)?\\.com/api/webhooks/(?P<id>[0-9]+)/("
                           "?P<token>[A-Za-z0-9\\.\\-\\_]+)/?$", url)
         if not search:
-            raise InvalidEmbedSettings("Error trying to update embed: Invalid Webhook.")
+            raise DatabaseError("Error trying to update embed: Invalid Webhook.")
         url = "https://discord.com/api/webhooks/{id}/{token}".format(**search.groupdict())
         self.database["webhook"] = url
         self.dump()
@@ -120,14 +124,14 @@ class DatabaseUtility:
             self.database["color"] = color
             self.dump()
         else:
-            raise InvalidEmbedSettings("Error trying to update embed: Invalid Color.")
+            raise DatabaseError("Error trying to update embed: Invalid Color.")
         return self.database
 
     def sync_key(self, key):
         search = self.match_key(key)
         if search:
             index, data = search
-            apps = [app.name for app in from_key(key).apps()]
+            apps = [app.name for app in heroku3.from_key(key).apps()]
             self.database["keys"][index]["apps"] = apps
             self.dump()
             return apps

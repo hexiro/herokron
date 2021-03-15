@@ -1,14 +1,6 @@
-class AppNotFound(Exception):
+class AppError(Exception):
     pass
 
 
-class AppWithoutProcfile(Exception):
-    pass
-
-
-class InvalidAPIKey(Exception):
-    pass
-
-
-class InvalidEmbedSettings(Exception):
+class DatabaseError(Exception):
     pass

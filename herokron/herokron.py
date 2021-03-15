@@ -3,10 +3,9 @@ from argparse import ArgumentParser
 
 import dhooks
 import heroku3
-from requests import HTTPError
 
 from .database import DatabaseUtility
-from .exceptions import AppWithoutProcfile, InvalidAPIKey, InvalidEmbedSettings, AppNotFound
+from .exceptions import AppError, DatabaseError
 
 
 database = DatabaseUtility()
@@ -25,10 +24,10 @@ class Herokron:
 
         # after a refresh if self.heroku still isn't defined
         if not hasattr(self, "heroku"):
-            raise AppNotFound("App couldn't be found in the local database.")
+            raise AppError("App couldn't be found in the local database.")
 
         if not self.app.process_formation():
-            raise AppWithoutProcfile("App hasn't explicitly stated weather it's a worker or a web app.")
+            raise AppError("App has not process types.")
 
         # In heroku, nodejs will often show up as both web and worker.
         # it's kind of bad to assume it will be worker so I might change that in the future.
@@ -102,6 +101,11 @@ def state(name: str):
 
 
 def main():
+    """
+    main function:
+    0. used if __name__ == __main__
+    1. used from command line herokron:main (console script)
+    """
     parser = ArgumentParser()
     # we make the default False, so that if you don't give it an arg it will be `None` instead of `False`
     # if you know a better way of doing this lmk!
@@ -147,6 +151,7 @@ def main():
                         help="Stops this iteration from printing.",
                         nargs="?",
                         default=False)
+
     if len(sys.argv) == 1:
         parser.print_help()
         return
@@ -164,10 +169,7 @@ def main():
 
     # duplication checking is done inside `add_key` and `remove_key`.
     if _add_key:
-        try:
-            database.add_key(_add_key)
-        except HTTPError:
-            raise InvalidAPIKey("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
+        database.add_key(_add_key)
     if _remove_key:
         database.remove_key(_remove_key)
     if _webhook:
@@ -210,12 +212,12 @@ def main():
     if (isinstance(log, dict) and "changed" in log) and _no_log is False and database.webhook:
         # beyond this point we know log is a state change dict
         try:
-            match_dict = {True: "🟢", False: "🔴"}     # TRUE: Large Green Circle, FALSE: Large Red Circle
+            match_dict = {True: "🟢", False: "🔴"}  # TRUE: Large Green Circle, FALSE: Large Red Circle
             if log["online"]:
                 previous = match_dict[not log["changed"]]
             else:
                 previous = match_dict[log["changed"]]
-            current = match_dict[log["online"]]        # True == online, False == offline.
+            current = match_dict[log["online"]]
             log_embed = dhooks.Embed(
                 title=log["app"],
                 # small spaces in description to split the emojis apart in a nice manner.
@@ -228,9 +230,9 @@ def main():
             log_embed.set_timestamp(now=True)
             dhooks.Webhook(database.webhook).send(embed=log_embed)
         except ValueError:
-            raise InvalidEmbedSettings("Discord logging attempted with invalid webhook set in local database."
-                                       "If your webhook is valid, please open an issue at "
-                                       "https://github.com/Hexiro/Herokron.")
+            raise DatabaseError("Discord logging attempted with invalid webhook set in local database."
+                                "If your webhook is valid, please open an issue at "
+                                "https://github.com/Hexiro/Herokron.")
 
 
 if __name__ == "__main__":
