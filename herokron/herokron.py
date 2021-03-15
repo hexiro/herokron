@@ -14,15 +14,16 @@ database = DatabaseUtility()
 
 class Herokron:
 
-    def __init__(self, app=None):
-        if app is not None:
-            # if it doesn't exist refresh database
-            if app not in database.apps:
-                database.sync_database()
-            if app in database.apps:
-                self.heroku = heroku3.from_key(database.get_key(app))
-                self.app = self.heroku.app(app)
+    def __init__(self, app):
 
+        # if it doesn't exist refresh database
+        if app not in database.apps:
+            database.sync_database()
+        if app in database.apps:
+            self.heroku = heroku3.from_key(database.get_key(app))
+            self.app = self.heroku.app(app)
+
+        # after a refresh if self.heroku still isn't defined
         if not hasattr(self, "heroku"):
             raise AppNotFound("App couldn't be found in the local database.")
 
