@@ -103,17 +103,11 @@ def state(name: str):
 def main():
     parser = ArgumentParser()
     parser.add_argument("-on",
-                        help="Calls the `on` function to turn an app on.",
-                        nargs="?",
-                        default=False)
+                        help="Calls the `on` function to turn an app on.")
     parser.add_argument("-off",
-                        help="Calls the `off` function to turn an app off.",
-                        nargs="?",
-                        default=False)
+                        help="Calls the `off` function to turn an app off.")
     parser.add_argument("-state",
-                        help="Calls the `state` function view the current state of an app.",
-                        nargs="?",
-                        default=False)
+                        help="Calls the `state` function view the current state of an app.")
     parser.add_argument("-apps-list",
                         help="Calls the `apps_list` function to view all connected apps.",
                         nargs="?",
