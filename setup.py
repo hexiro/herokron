@@ -1,6 +1,5 @@
 from setuptools import setup
-
-version = "3.0.0"
+from herokron import __version__
 
 with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
@@ -10,7 +9,7 @@ with open("requirements.txt", encoding="utf-8") as req_file:
 
 setup(
     name="herokron",
-    version=version,
+    version=__version__,
     description=(
         "Herokron is a mainly command line app used to make updating Heroku apps easy between accounts."
     ),
@@ -38,7 +37,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python",
-        "Topic :: Software Development",
+        "Topic :: Software Development"
     ],
     keywords=[
         "Python",
@@ -47,5 +46,5 @@ setup(
         "Herokron",
         "Cron",
         "Crontab"
-    ],
+    ]
 )
