@@ -222,14 +222,14 @@ def main():
         print(log)
 
     # if function is a state change, logging is allowed, and a discord webhook is set:
-    if (isinstance(log, dict) and "changed" in log) and _no_log is False and database.webhook:
+    if (isinstance(log, dict) and "updated" in log) and _no_log is False and database.webhook:
         # beyond this point we know log is a state change dict
         try:
             match_dict = {True: "🟢", False: "🔴"}  # TRUE: Large Green Circle, FALSE: Large Red Circle
             if log["online"]:
-                previous = match_dict[not log["changed"]]
+                previous = match_dict[not log["updated"]]
             else:
-                previous = match_dict[log["changed"]]
+                previous = match_dict[log["updated"]]
             current = match_dict[log["online"]]
             log_embed = dhooks.Embed(
                 title=log["app"],
