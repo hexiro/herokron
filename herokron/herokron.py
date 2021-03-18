@@ -192,20 +192,20 @@ def main():
     elif _off:
         log = globals()["off"](_off)
     elif _status:
-        log = globals()["state"](_status)
+        log = globals()["status"](_status)
     elif _database is not False:
         log = database
     else:
-        # if a `state change` is not called there is nothing else to do past this point,
+        # if a `status change` is not called there is nothing else to do past this point,
         # so we just return w/o consequences.
         return
 
     if _no_print is False:
         print(log)
 
-    # if function is a state change, logging is allowed, and a discord webhook is set:
+    # if function is a status change, logging is allowed, and a discord webhook is set:
     if (isinstance(log, dict) and "updated" in log) and _no_log is False and database.webhook:
-        # beyond this point we know log is a state change dict
+        # beyond this point we know log is a status change dict
         try:
             match_dict = {True: "🟢", False: "🔴"}  # TRUE: Large Green Circle, FALSE: Large Red Circle
             if log["online"]:
