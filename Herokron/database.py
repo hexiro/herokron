@@ -115,11 +115,14 @@ class DatabaseUtility:
 
     def set_color(self, color: str):
         # change #FFFFFF to FFFFFF
-        if isinstance(color, str) and color.startswith("#"):
+        if color.startswith("#"):
             color = color[1:]
         # convert from base 16 to base 10
-        if not isinstance(color, int):
+        if len(color) == 6:
             color = int(color, 16)
+        # change type to base 10 int
+        else:
+            color = int(color)
         if 0 <= color <= 16777215:
             # 16777215 should be max value; 16777215 is FFFFFF in base 10
             self.database["color"] = color
