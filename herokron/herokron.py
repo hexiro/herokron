@@ -216,7 +216,7 @@ def main():
             log_embed = dhooks.Embed(
                 title=log["app"],
                 # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
-                description=f"**STATE:⠀{previous}      →      {current}**\n"
+                description=f"**STATUS:⠀{previous}      →      {current}**\n"
                             "\n"
                             "View affected app:\n"
                             f"[heroku.com](https://dashboard.heroku.com/apps/{log['app']})",
