@@ -43,10 +43,6 @@ class DatabaseUtility:
 
     def __setitem__(self, key, value):
         self.database[key] = value
-
-    def __str__(self):
-        # kind of a hacky solution to make printing database easy :shrug:
-        return str(self.database)
     
     @property
     def keys(self):
