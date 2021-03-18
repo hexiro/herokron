@@ -24,7 +24,7 @@ else:
 
 database_file.parents[0].mkdir(parents=True, exist_ok=True)
 if not database_file.is_file():
-    with database_file.open(mode="w") as file:
+    with database_file.open(mode="w", encoding="utf8") as file:
         # color is `Heroku Lavender` found at https://brand.heroku.com
         json.dump({"keys": [], "color": 0x7673C0, "webhook": ""}, file)
 
@@ -50,11 +50,14 @@ class DatabaseUtility:
     
     @property
     def keys(self):
-        return [item["key"] for item in self.database["keys"]]
+        return [key for item in self.database["keys"] for key in item.keys()]
 
     @property
     def apps(self):
-        return [item for sublist in [key["apps"] for key in self.database["keys"]] for item in sublist]
+        # 1. Gets all `values` which is a list of all apps (ex. [["app_1", "app_2"], ["app_3", "app_4"]])
+        # 2. Flattens the list (ex. ["app_1", "app_2", "app_3", "app_4"])
+        # this could prob be made better but I can't think of how right now.
+        return [item for sublist in [value for item in self.database["keys"] for value in item.values()] for item in sublist]
 
     @property
     def color(self):
@@ -71,34 +74,34 @@ class DatabaseUtility:
     def key_exists(self, key):
         return key in self.keys
 
-    def match_key(self, key):
-        for index, data in enumerate(self.database["keys"]):
-            if data["key"] == key:
-                return index, data
+    def index_key(self, key):
+        keys = self.keys
+        for index in range(len(keys)):
+            if key == keys[index]:
+                return index
 
     def get_key(self, app):
         for item in self.database["keys"]:
-            if app in item["apps"]:
-                return item["key"]
+            apps = list(item.values())[0]
+            if app in apps:
+                return list(item.keys())[0]
 
     def get_apps(self, key):
-        search = self.match_key(key)
-        if search:
-            return search[1]["apps"]
+        if key in self.keys:
+            return self.database["keys"][key]
 
     def add_key(self, key):
         if key not in self.keys:
             try:
-                self.database["keys"].append({"key": key, "apps": [app.name for app in heroku3.from_key(key).apps()]})
+                self.database["keys"].append({key: [app.name for app in heroku3.from_key(key).apps()]})
                 self.dump()
             except HTTPError:
                 raise DatabaseError("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
         return self.database
 
     def remove_key(self, key):
-        search = self.match_key(key)
-        if search:
-            del self.database["keys"][search[0]]
+        if key in self.keys:
+            del self.database["keys"][self.index_key(key)]
             self.dump()
             return self.database
 
@@ -130,13 +133,13 @@ class DatabaseUtility:
         return self.database
 
     def sync_key(self, key):
-        search = self.match_key(key)
-        if search:
-            index, data = search
+        try:
             apps = [app.name for app in heroku3.from_key(key).apps()]
-            self.database["keys"][index]["apps"] = apps
+            self.database["keys"][self.index_key(key)]["apps"] = apps
             self.dump()
             return apps
+        except HTTPError:
+            raise DatabaseError("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
 
     def sync_database(self):
         for key in self.keys:

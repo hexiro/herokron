@@ -233,7 +233,7 @@ def main():
             current = match_dict[log["online"]]
             log_embed = dhooks.Embed(
                 title=log["app"],
-                # small spaces in description to split the emojis apart in a nice manner.
+                # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
                 description=f"**STATE:⠀{previous}      →      {current}**\n"
                             "\n"
                             "View affected app:\n"
