@@ -11,7 +11,8 @@ setup(
     name="herokron",
     version=__version__,
     description=(
-        "Herokron is a mainly command line app used to make updating Heroku apps easy between accounts."
+        "Herokron is a python package used to make switching Heroku apps on/off easy, especially between accounts. "
+        "The primary use case is from the command line in the form of a cron job (hence the ending kron)"
     ),
     long_description=readme,
     long_description_content_type="text/markdown",

@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 import dhooks
 import heroku3
 
-from herokron.formatting import FormattingUtility
+from .formatting import FormattingUtility
 from .database import DatabaseUtility
 from .exceptions import AppError, DatabaseError
 
@@ -168,6 +168,7 @@ def main():
     _color = options.set_color
     _no_log = options.no_log
     _no_print = options.no_print
+    _database = options.database
 
     # duplication checking is done inside `add_key` and `remove_key`.
     if _add_key:
@@ -178,17 +179,17 @@ def main():
         database.set_webhook(_webhook)
     if _color:
         database.set_color(_color)
-    if any({_add_key, _remove_key, _webhook, _color}) and _no_print is False:
+    # if anything that would warrant a database update exists, and printing is allowed
+    if (any({_add_key, _remove_key, _webhook, _color}) or _database is not False) and _no_print is False:
         # ehhh i don't like the database.database syntax
         # I'll have to work on that sometime.
         print(FormattingUtility().format(database.database))
 
-    # handle state changes
+    # handle status changes
 
     _on = options.on
     _off = options.off
     _status = options.status
-    _database = options.database
 
     if _on:
         log = globals()["on"](_on)
@@ -196,8 +197,6 @@ def main():
         log = globals()["off"](_off)
     elif _status:
         log = globals()["status"](_status)
-    elif _database is not False:
-        log = database.database
     else:
         # if a `status change` is not called there is nothing else to do past this point,
         # so we just return w/o consequences.
@@ -231,7 +230,3 @@ def main():
             raise DatabaseError("Discord logging attempted with invalid webhook set in local database."
                                 "If your webhook is valid, please open an issue at "
                                 "https://github.com/Hexiro/Herokron.")
-
-
-if __name__ == "__main__":
-    main()
