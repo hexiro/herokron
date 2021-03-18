@@ -25,7 +25,7 @@ database_file.parents[0].mkdir(parents=True, exist_ok=True)
 if not database_file.is_file():
     with database_file.open(mode="w", encoding="utf8") as file:
         # color is `Heroku Lavender` found at https://brand.heroku.com
-        json.dump({"keys": [], "color": 0x7673C0, "webhook": ""}, file)
+        json.dump({"keys": [], "color": 0x7673C0, "webhook": {}}, file)
 
 
 # we do these checks one time and hope that no one deletes the files :shrug:
@@ -61,7 +61,9 @@ class DatabaseUtility:
 
     @property
     def webhook(self):
-        return self.database["webhook"]
+        if {"id", "token"} <= self.database["webhook"].keys():
+            # this clever line with horrible readability just checks if both `id` and `token` are present in the db.
+            return "https://discord.com/api/webhooks/{id}/{token}".format(**self.database["webhook"])
 
     def dump(self):
         return database_file.write_text(json.dumps(self.database), encoding="utf8")
@@ -107,8 +109,7 @@ class DatabaseUtility:
                           "?P<token>[A-Za-z0-9\\.\\-\\_]+)/?$", url)
         if not search:
             raise DatabaseError("Error trying to update embed: Invalid Webhook Format.")
-        url = "https://discord.com/api/webhooks/{id}/{token}".format(**search.groupdict())
-        self.database["webhook"] = url
+        self.database["webhook"] = search.groupdict()
         self.dump()
         return self.database
 
