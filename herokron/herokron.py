@@ -126,34 +126,22 @@ def main():
                         help="Calls the `on` function to turn an app on.")
     parser.add_argument("-off",
                         help="Calls the `off` function to turn an app off.")
-    parser.add_argument("-state",
-                        help="Calls the `state` function view the current state of an app.")
-    parser.add_argument("-apps",
-                        help="Returns a list of all connected apps.",
-                        nargs="?",
-                        default=False)
-    parser.add_argument("-keys",
-                        help="Returns a list of all connected keys.",
-                        nargs="?",
-                        default=False)
+    parser.add_argument("-status",
+                        help="Calls the `status` function view the current status of an app.")
     parser.add_argument("-database",
                         help="Returns a the raw database json.",
                         nargs="?",
                         default=False)
     parser.add_argument("--add-key",
-                        "-add",
                         help="Adds the Heroku API key specified.",
                         default=False)
     parser.add_argument("--remove-key",
-                        "-remove",
                         help="Removes the Heroku API key specified.",
                         default=False)
     parser.add_argument("--set-webhook",
-                        "-webhook",
                         help="Sets the Discord Webhook URL for logging.",
                         default=False)
     parser.add_argument("--set-color",
-                        "-color",
                         help="Sets the Discord Embed Color.",
                         default=False)
     parser.add_argument("--no-log",
@@ -196,23 +184,17 @@ def main():
 
     _on = options.on
     _off = options.off
-    _state = options.state
+    _status = options.status
     _database = options.database
-    _apps = options.apps
-    _keys = options.keys
 
     if _on:
         log = globals()["on"](_on)
     elif _off:
         log = globals()["off"](_off)
-    elif _state:
-        log = globals()["state"](_state)
+    elif _status:
+        log = globals()["state"](_status)
     elif _database is not False:
         log = database
-    elif _apps is not False:
-        log = database.apps
-    elif _keys is not False:
-        log = database.keys
     else:
         # if a `state change` is not called there is nothing else to do past this point,
         # so we just return w/o consequences.
