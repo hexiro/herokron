@@ -32,7 +32,7 @@ class Herokron:
             raise AppError("App couldn't be found in the local database.")
 
         if not self.app.process_formation():
-            raise AppError("App has not process types.")
+            raise AppError("App has no process types. (can't be turned on/off)")
 
         # In heroku, nodejs will often show up as both web and worker
         # it's kind of bad to assume it will be worker, so I might change that in the future.
@@ -225,6 +225,6 @@ def main():
             log_embed.set_timestamp(now=True)
             dhooks.Webhook(database.webhook).send(embed=log_embed)
         except ValueError:
-            raise DatabaseError("Discord logging attempted with invalid webhook set in local database."
-                                "If your webhook is valid, please open an issue at "
+            raise DatabaseError("Discord logging attempted with invalid webhook set in local database. "
+                                "If your webhook is valid, please open an issue at: "
                                 "https://github.com/Hexiro/Herokron.")

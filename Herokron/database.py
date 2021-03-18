@@ -18,8 +18,8 @@ elif sys.platform == "linux":
 elif sys.platform == "darwin":
     database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
 else:
-    raise OSError("Unsupported OS. View Lines 24-30 and submit a pull request to add OS,"
-                  "or inform maintainer(s) of what your sys.platform is.")
+    raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
+                  "or submit a pull request at: https://github.com/Hexiro/Herokron.")
 
 database_file.parents[0].mkdir(parents=True, exist_ok=True)
 if not database_file.is_file():
@@ -108,7 +108,7 @@ class DatabaseUtility:
         search = re.match("^(?:https?://)?((canary|ptb)\\.)?discord(?:app)?\\.com/api/webhooks/(?P<id>[0-9]+)/("
                           "?P<token>[A-Za-z0-9\\.\\-\\_]+)/?$", url)
         if not search:
-            raise DatabaseError("Error trying to update embed: Invalid Webhook Format.")
+            raise DatabaseError("Webhook passed doesn't match webhook format.")
         self.database["webhook"] = search.groupdict()
         self.dump()
         return self.database
@@ -125,7 +125,7 @@ class DatabaseUtility:
             self.database["color"] = color
             self.dump()
         else:
-            raise DatabaseError("Error trying to update embed: Invalid Color.")
+            raise DatabaseError("Color passed isn't in base 16 or hexadecimal.")
         return self.database
 
     def sync_key(self, key):
