@@ -134,7 +134,7 @@ class DatabaseUtility:
     def sync_key(self, key):
         try:
             apps = [app.name for app in heroku3.from_key(key).apps()]
-            self.database["keys"][self.index_key(key)]["apps"] = apps
+            self.database["keys"][self.index_key(key)][key] = apps
             self.dump()
             return apps
         except HTTPError:
