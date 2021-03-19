@@ -28,10 +28,9 @@ $ Herokron --add-key {key}
 $ Herokron --set-webhook {discord_webhook}
 $ Herokron --set-color {discord_embed_color}
 ```
-View all loaded apps to make sure everything is working.
+View the database to make sure everything is working.
 ```console
-$ Herokron -apps-list
->>> ["app_one", "app_two", "..."]
+$ Herokron -database
 ```
 
 ## 📝 Usage
@@ -50,15 +49,13 @@ Herokron.off(app) # .py
 
 ```Python
 # Returns the current state of the Heroku app.
-Herokron - state[app]  # command line
+Herokron - status[app]  # command line
 Herokron.status(app)  # .py
 >> > {"online": bool, "app": ""}
 ```
 ```Python
-# Returns all the apps associated with all the Heroku API keys provided.
-Herokron -apps-list # command line
-Herokron.apps_list() # .py
->>> ["app_one", "app_two", "..."]
+# Returns the local database pretty printed.
+Herokron -database # command line
 ```
 
 # ⌛ Cron
