@@ -1,5 +1,4 @@
 from setuptools import setup
-from herokron import __version__
 
 with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
@@ -9,7 +8,7 @@ with open("requirements.txt", encoding="utf-8") as req_file:
 
 setup(
     name="herokron",
-    version=__version__,
+    version="4.0.0",
     description=(
         "Herokron is a python package used to make switching Heroku apps on/off easy, especially between accounts. "
         "The primary use case is from the command line in the form of a cron job (hence the ending kron)"
