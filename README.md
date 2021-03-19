@@ -8,7 +8,7 @@ Herokron is a python package used to make switching [Heroku](https://heroku.com/
 ![Issues](https://img.shields.io/github/issues/Hexiro/Herokron)
 ![License](https://img.shields.io/github/license/Hexiro/Herokron)
 
-![Herokron Webhook Example](https://i.imgur.com/o8Tmdxh.png)
+![Herokron Webhook Example](https://i.imgur.com/42O2mbP.png)
 
 
 ## 📦 Installation
