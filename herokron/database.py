@@ -9,32 +9,28 @@ from requests import HTTPError
 from .exceptions import DatabaseError
 
 
-home = pathlib.Path.home()
-
-if sys.platform == "win32":
-    database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
-elif sys.platform == "linux":
-    database_file = home / ".local" / "share" / "Herokron" / "db.json"
-elif sys.platform == "darwin":
-    database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
-else:
-    raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
-                  "or submit a pull request at: https://github.com/Hexiro/Herokron.")
-
-database_file.parents[0].mkdir(parents=True, exist_ok=True)
-if not database_file.is_file():
-    with database_file.open(mode="w", encoding="utf8") as file:
-        # color is `Heroku Lavender` found at https://brand.heroku.com
-        json.dump({"keys": [], "color": 0x7673C0, "webhook": {}}, file)
-
-
-# we do these checks one time and hope that no one deletes the files :shrug:
-
-
 class DatabaseUtility:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
     def __init__(self):
+        home = pathlib.Path.home()
+
+        if sys.platform == "win32":
+            database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
+        elif sys.platform == "linux":
+            database_file = home / ".local" / "share" / "Herokron" / "db.json"
+        elif sys.platform == "darwin":
+            database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
+        else:
+            raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
+                          "or submit a pull request at: https://github.com/Hexiro/Herokron.")
+
+        database_file.parents[0].mkdir(parents=True, exist_ok=True)
+        if not database_file.is_file():
+            with database_file.open(mode="w", encoding="utf8") as file:
+                # color is `Heroku Lavender` found at https://brand.heroku.com
+                json.dump({"keys": [], "color": 0x7673C0, "webhook": {}}, file)
+
         self.database = json.loads(database_file.read_text(encoding="utf8"))
 
     def __getitem__(self, item):
