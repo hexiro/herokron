@@ -12,26 +12,55 @@ from .exceptions import DatabaseError
 class DatabaseUtility:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
+    def __is_invalid_database(self):
+        if hasattr(self, "database"):
+
+            # general structure checking
+
+            # db has the three keys (keys, color, and webhook)
+            if not {"keys", "color", "webhook"} <= set(self.database.keys()):
+                return True
+            # all API keys are 36 characters in length
+            elif not all(len(key) == 36 for key in self.keys):
+                return True
+
+            # data type checking
+
+            elif not isinstance(self.database["keys"], list):
+                return True
+            elif not isinstance(self.database["color"], int):
+                return True
+            elif not isinstance(self.database["webhook"], dict):
+                return True
+
+        # I figured this is good enough. I don't want the check to take forever
+        # and this will eliminate all older versions of the database, so the user isn't confused after an update.
+        return False
+
     def __init__(self):
         home = pathlib.Path.home()
 
         if sys.platform == "win32":
-            database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
+            self.database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
         elif sys.platform == "linux":
-            database_file = home / ".local" / "share" / "Herokron" / "db.json"
+            self.database_file = home / ".local" / "share" / "Herokron" / "db.json"
         elif sys.platform == "darwin":
-            database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
+            self.database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
         else:
             raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
                           "or submit a pull request at: https://github.com/Hexiro/Herokron.")
 
-        database_file.parents[0].mkdir(parents=True, exist_ok=True)
-        if not database_file.is_file():
-            with database_file.open(mode="w", encoding="utf8") as file:
+        if self.database_file.is_file():
+            self.database = json.loads(self.database_file.read_text(encoding="utf8"))
+
+        self.database_file.parents[0].mkdir(parents=True, exist_ok=True)
+        if not self.database_file.is_file() or self.__is_invalid_database():
+            with self.database_file.open(mode="w", encoding="utf8") as file:
                 # color is `Heroku Lavender` found at https://brand.heroku.com
                 json.dump({"keys": [], "color": 0x7673C0, "webhook": {}}, file)
 
-        self.database = json.loads(database_file.read_text(encoding="utf8"))
+        # refresh database variable in case it was changed
+        self.database = json.loads(self.database_file.read_text(encoding="utf8"))
 
     def __getitem__(self, item):
         return self.database[item]
@@ -62,7 +91,7 @@ class DatabaseUtility:
             return "https://discord.com/api/webhooks/{id}/{token}".format(**self.database["webhook"])
 
     def dump(self):
-        return database_file.write_text(json.dumps(self.database), encoding="utf8")
+        return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
 
     def key_exists(self, key):
         return key in self.keys
