@@ -115,8 +115,7 @@ def status(app):
 def main():
     """
     main function:
-    0. used if __name__ == __main__
-    1. used from command line herokron:main (console script)
+    used from command line herokron:main (console script)
     """
     parser = ArgumentParser()
     # we make the default False, so that if you don't give it an arg it will be `None` instead of `False`
@@ -127,8 +126,8 @@ def main():
                         help="Calls the `off` function to turn an app off.")
     parser.add_argument("-status",
                         help="Calls the `status` function view the current status of an app.")
-    parser.add_argument("-database",
-                        help="Returns a the raw database json.",
+    parser.add_argument("--database",
+                        help="Prints the formatted database.",
                         nargs="?",
                         default=False)
     parser.add_argument("--add-key",
