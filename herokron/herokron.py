@@ -57,24 +57,22 @@ class Herokron:
         Switches the app online, if it isn't already.
         :return: dictionary containing information about the app
         """
-        completion_dict = {"online": True}
         if self.online:
-            return {"updated": False, **completion_dict}
+            return {"online": True, "updated": False}
 
         self.dynos.scale(1)
-        return {"updated": True, **completion_dict}
+        return {"online": True, "updated": True}
 
     def off(self):
         """
         Switches the app offline, if it isn't already.
         :return: dictionary containing information about the app
         """
-        completion_dict = {"online": False}
         if self.offline:
-            return {"updated": False, **completion_dict}
+            return {"online": False, "updated": False}
 
         self.dynos.scale(0)
-        return {"updated": True, **completion_dict}
+        return {"online": False, "updated": True}
 
 
 # shorthand functions
