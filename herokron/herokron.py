@@ -124,13 +124,13 @@ def main():
                         help="Calls the `off` function to turn an app off.")
     parser.add_argument("-status",
                         help="Calls the `status` function view the current status of an app.")
-    parser.add_argument("--database",
-                        help="Prints the formatted database.",
-                        action="store_true")
     parser.add_argument("--add-key",
                         help="Adds the Heroku API key specified.")
     parser.add_argument("--remove-key",
                         help="Removes the Heroku API key specified.")
+    parser.add_argument("--database",
+                        help="Prints the formatted database.",
+                        action="store_true")
     parser.add_argument("--no-print",
                         help="Stops this iteration from printing.",
                         action="store_true")
