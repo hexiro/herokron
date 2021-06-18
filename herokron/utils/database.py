@@ -27,8 +27,7 @@ class Database:
     try:
         database = json.loads(database_file.read_text(encoding="utf8"))
     except (FileNotFoundError, json.JSONDecodeError):
-        # color is `Heroku Lavender` found at https://brand.heroku.com
-        database = {"keys": [], "color": 0x7673C0, "webhook": {}}
+        database = {"keys": []}
         database_file.write_text(data=json.dumps(database), encoding="utf8")
 
     def __getitem__(self, item):
