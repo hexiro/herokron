@@ -177,6 +177,7 @@ def main():
         print(Formatting().format(database.database))
 
     # handle status changes
+
     app = options.on or options.off or options.status
 
     turn_on = bool(options.on)
@@ -184,40 +185,40 @@ def main():
     check_status = bool(options.status)
 
     if turn_on:
-        log = on(app)
+        result = on(app)
     elif turn_off:
-        log = off(app)
+        result = off(app)
     elif check_status:
-        log = status(app)
+        result = status(app)
     else:
         # if a `status change` is not called there is nothing else to do past this point,
         # so we just return w/o consequences.
         return
 
     if _no_print is False:
-        print(Formatting().format(log))
+        print(Formatting().format(result))
 
     if check_status:
         return
 
-    # if function is a status change, logging is allowed, and a discord webhook is set:
-    if (isinstance(log, dict) and "updated" in log) and _no_log is False and database.webhook:
-        # beyond this point we know log is a status change dict
+    if _no_log is False and database.webhook:
         try:
-            match_dict = {True: "🟢", False: "🔴"}  # TRUE: Large Green Circle, FALSE: Large Red Circle
-            if log["online"]:
-                previous = match_dict[not log["updated"]]
+            online = result["online"]
+            updated = result["updated"]
+            current = "🟢" if result["online"] else "🔴"
+            if not updated:
+                previous = current
             else:
-                previous = match_dict[log["updated"]]
-            current = match_dict[log["online"]]
+                previous = "🔴" if online else "🟢"
             log_embed = dhooks.Embed(
                 title=app,
+                color=database.color,
                 # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
                 description=f"**STATUS:⠀{previous}      →      {current}**\n"
                             "\n"
                             "View affected app:\n"
-                            f"[heroku.com](https://dashboard.heroku.com/apps/{app})",
-                color=database.color
+                            f"[heroku.com](https://dashboard.heroku.com/apps/{app})"
+
             )
             log_embed.set_timestamp(now=True)
             database.webhook.send(embed=log_embed)
