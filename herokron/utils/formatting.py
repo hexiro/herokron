@@ -1,7 +1,9 @@
+from typing import Union
+
 import yaml
 
 
-def format_data(data):
+def format_data(data: Union[dict, list]):
     """
     :param data: input data
     :return: pretty formatted yaml representation of a dictionary

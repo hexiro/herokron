@@ -1,6 +1,7 @@
 import json
 import pathlib
 import sys
+from typing import Any
 
 import heroku3
 import yaml
@@ -31,10 +32,10 @@ class Database:
         database = {"keys": []}
         database_file.write_text(data=yaml.dump(database), encoding="utf8")
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
         return self.database[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
         self.database[key] = value
 
     @property
@@ -51,18 +52,18 @@ class Database:
     def dump(self):
         return self.database_file.write_text(yaml.dump(self.database), encoding="utf8")
 
-    def index_key(self, key):
+    def index_key(self, key: str):
         for i, k in enumerate(self.keys):
             if key == k:
                 return i
 
-    def key_from_app(self, app):
+    def key_from_app(self, app: str):
         for item in self.database["keys"]:
             apps = list(item.values())[0]
             if app in apps:
                 return list(item.keys())[0]
 
-    def add_key(self, key):
+    def add_key(self, key: str):
         if key not in self.keys:
             try:
                 self.database["keys"].append({key: [app.name for app in heroku3.from_key(key).apps()]})
@@ -71,12 +72,12 @@ class Database:
                 raise DatabaseError("Invalid Heroku API Key. "
                                     "View your API Key(s) at: https://dashboard.heroku.com/account.")
 
-    def remove_key(self, key):
+    def remove_key(self, key: str):
         if key in self.keys:
             del self.database["keys"][self.index_key(key)]
             self.dump()
 
-    def sync_key(self, key):
+    def sync_key(self, key: str):
         try:
             apps = [app.name for app in heroku3.from_key(key).apps()]
             self.database["keys"][self.index_key(key)][key] = apps

@@ -11,7 +11,7 @@ from .utils.database import database
 
 class Herokron:
 
-    def __init__(self, app):
+    def __init__(self, app: str):
         """
         :param app: The name of the Heroku app in which you want to update
         :type app: str
@@ -52,7 +52,7 @@ class Herokron:
         """
         return {"online": self.online}
 
-    def _scale(self, turn_on):
+    def _scale(self, turn_on: bool):
         if turn_on and self.online:
             return {"online": True, "updated": False}
         if not turn_on and self.offline:
@@ -81,7 +81,7 @@ class Herokron:
 
 # shorthand functions
 
-def on(app):
+def on(app: str):
     """
     Switches the app online, if it isn't already.
     :param app: The name of the Heroku app in which you want to change
@@ -91,7 +91,7 @@ def on(app):
     return Herokron(app).on()
 
 
-def off(app):
+def off(app: str):
     """
     Switches the app offline, if it isn't already.
     :param app: The name of the Heroku app in which you want to change
@@ -101,7 +101,7 @@ def off(app):
     return Herokron(app).off()
 
 
-def status(app):
+def status(app: str):
     """
     :param app: The name of the Heroku app in which you want to change
     :type app: str
