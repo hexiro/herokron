@@ -122,28 +122,21 @@ def main():
                         help="Calls the `status` function view the current status of an app.")
     parser.add_argument("--database",
                         help="Prints the formatted database.",
-                        nargs="?",
-                        default=False)
+                        action="store_true")
     parser.add_argument("--add-key",
-                        help="Adds the Heroku API key specified.",
-                        default=False)
+                        help="Adds the Heroku API key specified.")
     parser.add_argument("--remove-key",
-                        help="Removes the Heroku API key specified.",
-                        default=False)
+                        help="Removes the Heroku API key specified.")
     parser.add_argument("--set-webhook",
-                        help="Sets the Discord Webhook URL for logging.",
-                        default=False)
+                        help="Sets the Discord Webhook URL for logging.")
     parser.add_argument("--set-color",
-                        help="Sets the Discord Embed Color.",
-                        default=False)
+                        help="Sets the Discord Embed Color.")
     parser.add_argument("--no-log",
-                        nargs="?",
                         help="Stops this iteration from logging.",
-                        default=False)
+                        action="store_true")
     parser.add_argument("--no-print",
                         help="Stops this iteration from printing.",
-                        nargs="?",
-                        default=False)
+                        action="store_true")
 
     if len(sys.argv) == 1:
         parser.print_help()
