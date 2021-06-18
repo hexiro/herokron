@@ -1,4 +1,4 @@
-class FormattingUtility:
+class Formatting:
 
     @staticmethod
     def __get_start(depth):

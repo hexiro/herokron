@@ -1,2 +1,2 @@
-from .database import DatabaseUtility
-from .formatting import FormattingUtility
+from .database import Database
+from .formatting import Formatting

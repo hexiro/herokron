@@ -9,7 +9,7 @@ from requests import HTTPError
 from ..exceptions import DatabaseError
 
 
-class DatabaseUtility:
+class Database:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
     def __is_invalid_database(self):

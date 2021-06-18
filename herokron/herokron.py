@@ -4,12 +4,12 @@ from argparse import ArgumentParser
 import dhooks
 import heroku3
 
-from .utils.formatting import FormattingUtility
-from .utils.database import DatabaseUtility
+from .utils.formatting import Formatting
+from .utils.database import Database
 from .exceptions import AppError, DatabaseError
 
 
-database = DatabaseUtility()
+database = Database()
 
 
 class Herokron:
@@ -180,7 +180,7 @@ def main():
     if (any({_add_key, _remove_key, _webhook, _color}) or _database is not False) and _no_print is False:
         # ehhh i don't like the database.database syntax
         # I'll have to work on that sometime.
-        print(FormattingUtility().format(database.database))
+        print(Formatting().format(database.database))
 
     # handle status changes
 
@@ -200,7 +200,7 @@ def main():
         return
 
     if _no_print is False:
-        print(FormattingUtility().format(log))
+        print(Formatting().format(log))
 
     # if function is a status change, logging is allowed, and a discord webhook is set:
     if (isinstance(log, dict) and "updated" in log) and _no_log is False and database.webhook:
