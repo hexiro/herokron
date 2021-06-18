@@ -57,8 +57,12 @@ class Herokron:
             return {"online": True, "updated": False}
         if not turn_on and self.offline:
             return {"online": False, "updated": False}
-        self.dynos.scale(int(turn_on))
-        return {"online": turn_on, "updated": True}
+        try:
+            self.dynos.scale(int(turn_on))
+            return {"online": turn_on, "updated": True}
+        except requests.exceptions.HTTPError:
+            database.sync_database()
+            raise AppError("You don't have access to this app (deleted?)")
 
     def on(self):
         """
