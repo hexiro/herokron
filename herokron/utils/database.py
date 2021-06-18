@@ -3,6 +3,7 @@ import pathlib
 import sys
 
 import heroku3
+import yaml
 from requests import HTTPError
 
 from ..exceptions import DatabaseError
@@ -12,11 +13,11 @@ class Database:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
     if sys.platform == "win32":
-        database_file = pathlib.Path.home() / "AppData" / "Roaming" / "Herokron" / "db.json"
+        database_file = pathlib.Path.home() / "AppData" / "Roaming" / "Herokron" / "db.yaml"
     elif sys.platform == "linux":
-        database_file = pathlib.Path.home() / ".local" / "share" / "Herokron" / "db.json"
+        database_file = pathlib.Path.home() / ".local" / "share" / "Herokron" / "db.yaml"
     elif sys.platform == "darwin":
-        database_file = pathlib.Path.home() / "Library" / "Application Support" / "Herokron" / "db.json"
+        database_file = pathlib.Path.home() / "Library" / "Application Support" / "Herokron" / "db.yaml"
     else:
         raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
                       "or submit a pull request at: https://github.com/Hexiro/Herokron.")
@@ -25,10 +26,10 @@ class Database:
         database_file.parent.mkdir()
 
     try:
-        database = json.loads(database_file.read_text(encoding="utf8"))
+        database = yaml.safe_load(database_file.read_text(encoding="utf8"))
     except (FileNotFoundError, json.JSONDecodeError):
         database = {"keys": []}
-        database_file.write_text(data=json.dumps(database), encoding="utf8")
+        database_file.write_text(data=yaml.dump(database), encoding="utf8")
 
     def __getitem__(self, item):
         return self.database[item]
@@ -48,7 +49,7 @@ class Database:
         return [e for sublist in (v for e in self.database["keys"] for v in e.values()) for e in sublist]
 
     def dump(self):
-        return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
+        return self.database_file.write_text(yaml.dump(self.database), encoding="utf8")
 
     def index_key(self, key):
         for i, k in enumerate(self.keys):
