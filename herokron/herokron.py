@@ -13,7 +13,7 @@ class Herokron:
 
     def __init__(self, app):
         """
-        :param app: The name of the Heroku app in which you want to change
+        :param app: The name of the Heroku app in which you want to update
         :type app: str
         """
 
@@ -23,18 +23,20 @@ class Herokron:
         if app in database.apps:
             self.heroku = heroku3.from_key(database.key_from_app(app))
             self.app = self.heroku.app(app)
-
         # after a refresh if self.heroku still isn't defined
         else:
             raise AppError("App couldn't be found in the local database.")
 
-        if not self.app.process_formation():
+        # might add `proc_type` param in future
+        formation = self.app.process_formation()
+        if not formation:
             raise AppError("App has no process types. (can't be turned on/off)")
-
-        # In heroku, nodejs will often show up as both web and worker
-        # it's kind of bad to assume it will be worker, so I might change that in the future.
-        self.proc_type = "worker" if "worker" in self.app.process_formation() else "web"
-        self.dynos = self.app.process_formation()[self.proc_type]
+        elif "worker" in formation:
+            self.dynos = self.app.process_formation()["worker"]
+        elif "web" in formation:
+            self.dynos = self.app.process_formation()["web"]
+        else:
+            self.dynos = formation[0]
 
     @property
     def online(self):
@@ -61,7 +63,6 @@ class Herokron:
         completion_dict = {"online": True, "app": self.app.name}
         if self.online:
             return {"updated": False, **completion_dict}
-
 
         self.dynos.scale(1)
         return {"updated": True, **completion_dict}
