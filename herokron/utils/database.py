@@ -83,13 +83,11 @@ class Database:
             except HTTPError:
                 raise DatabaseError("Invalid Heroku API Key. "
                                     "View your API Key(s) at: https://dashboard.heroku.com/account.")
-        return self.database
 
     def remove_key(self, key):
         if key in self.keys:
             del self.database["keys"][self.index_key(key)]
             self.dump()
-            return self.database
 
     def set_webhook(self, url):
         # p.s. this regex is blatantly ripped from https://github.com/kyb3r/dhooks
@@ -100,7 +98,6 @@ class Database:
             raise DatabaseError("Webhook passed doesn't match webhook format.")
         self.database["webhook"] = search.groupdict()
         self.dump()
-        return self.database
 
     def set_color(self, color: str):
         # change #FFFFFF to FFFFFF
@@ -118,7 +115,6 @@ class Database:
             self.dump()
         else:
             raise DatabaseError("Color passed isn't in base 16 or hexadecimal.")
-        return self.database
 
     def sync_key(self, key):
         try:
@@ -133,7 +129,6 @@ class Database:
     def sync_database(self):
         for key in self.keys:
             self.sync_key(key)
-        return self.database
 
 
 database = Database()
