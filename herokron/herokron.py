@@ -62,6 +62,7 @@ class Herokron:
         if self.online:
             return {"updated": False, **completion_dict}
 
+
         self.dynos.scale(1)
         return {"updated": True, **completion_dict}
 
@@ -219,7 +220,7 @@ def main():
                 color=database.color
             )
             log_embed.set_timestamp(now=True)
-            dhooks.Webhook(database.webhook).send(embed=log_embed)
+            database.webhook.send(embed=log_embed)
         except ValueError:
             raise DatabaseError("Discord logging attempted with invalid webhook set in local database. "
                                 "If your webhook is valid, please open an issue at: "

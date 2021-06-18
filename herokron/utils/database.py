@@ -3,6 +3,7 @@ import pathlib
 import re
 import sys
 
+import dhooks
 import heroku3
 from requests import HTTPError
 
@@ -55,10 +56,10 @@ class Database:
         return int(self.database["color"])
 
     @property
-    def webhook(self):
-        if {"id", "token"} <= self.database["webhook"].keys():
-            # this clever line with horrible readability just checks if both `id` and `token` are present in the db.
-            return "https://discord.com/api/webhooks/{id}/{token}".format(**self.database["webhook"])
+    def webhook(self) -> dhooks.Webhook:
+        hook = self.database.get("webhook", {})
+        if "id" in hook and "token" in hook:
+            return dhooks.Webhook("https://discord.com/api/webhooks/{id}/{token}".format(**hook))
 
     def dump(self):
         return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
