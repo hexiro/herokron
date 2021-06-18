@@ -4,12 +4,9 @@ from argparse import ArgumentParser
 import dhooks
 import heroku3
 
-from .utils.formatting import Formatting
-from .utils.database import Database
 from .exceptions import AppError, DatabaseError
-
-
-database = Database()
+from .utils import Formatting
+from .utils.database import database
 
 
 class Herokron:

@@ -1,5 +1,5 @@
-import pathlib
 import json
+import pathlib
 import re
 import sys
 
@@ -12,62 +12,32 @@ from ..exceptions import DatabaseError
 class Database:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
-    def __is_invalid_database(self):
-        if hasattr(self, "database"):
+    if sys.platform == "win32":
+        database_file = pathlib.Path.home() / "AppData" / "Roaming" / "Herokron" / "db.json"
+    elif sys.platform == "linux":
+        database_file = pathlib.Path.home() / ".local" / "share" / "Herokron" / "db.json"
+    elif sys.platform == "darwin":
+        database_file = pathlib.Path.home() / "Library" / "Application Support" / "Herokron" / "db.json"
+    else:
+        raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
+                      "or submit a pull request at: https://github.com/Hexiro/Herokron.")
 
-            # general structure checking
+    if not database_file.parent.exists():
+        database_file.parent.mkdir()
 
-            # db has the three keys (keys, color, and webhook)
-            if not {"keys", "color", "webhook"} <= set(self.database.keys()):
-                return True
-            # all API keys are 36 characters in length
-            elif not all(len(key) == 36 for key in self.keys):
-                return True
-
-            # data type checking
-
-            elif not isinstance(self.database["keys"], list):
-                return True
-            elif not isinstance(self.database["color"], int):
-                return True
-            elif not isinstance(self.database["webhook"], dict):
-                return True
-
-        # I figured this is good enough. I don't want the check to take forever
-        # and this will eliminate all older versions of the database, so the user isn't confused after an update.
-        return False
-
-    def __init__(self):
-        home = pathlib.Path.home()
-
-        if sys.platform == "win32":
-            self.database_file = home / "AppData" / "Roaming" / "Herokron" / "db.json"
-        elif sys.platform == "linux":
-            self.database_file = home / ".local" / "share" / "Herokron" / "db.json"
-        elif sys.platform == "darwin":
-            self.database_file = home / "Library" / "Application Support" / "Herokron" / "db.json"
-        else:
-            raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
-                          "or submit a pull request at: https://github.com/Hexiro/Herokron.")
-
-        if self.database_file.is_file():
-            self.database = json.loads(self.database_file.read_text(encoding="utf8"))
-
-        self.database_file.parents[0].mkdir(parents=True, exist_ok=True)
-        if not self.database_file.is_file() or self.__is_invalid_database():
-            with self.database_file.open(mode="w", encoding="utf8") as file:
-                # color is `Heroku Lavender` found at https://brand.heroku.com
-                json.dump({"keys": [], "color": 0x7673C0, "webhook": {}}, file)
-
-        # refresh database variable in case it was changed
-        self.database = json.loads(self.database_file.read_text(encoding="utf8"))
+    try:
+        database = json.loads(database_file.read_text(encoding="utf8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        # color is `Heroku Lavender` found at https://brand.heroku.com
+        database = {"keys": [], "color": 0x7673C0, "webhook": {}}
+        database_file.write_text(data=json.dumps(database), encoding="utf8")
 
     def __getitem__(self, item):
         return self.database[item]
 
     def __setitem__(self, key, value):
         self.database[key] = value
-    
+
     @property
     def keys(self):
         return [key for item in self.database["keys"] for key in item.keys()]
@@ -77,7 +47,7 @@ class Database:
         # 1. Gets all `values` which is a list of all apps (ex. [["app_1", "app_2"], ["app_3", "app_4"]])
         # 2. Flattens the list (ex. ["app_1", "app_2", "app_3", "app_4"])
         # this could prob be made better but I can't think of how right now.
-        return [item for sublist in [value for item in self.database["keys"] for value in item.values()] for item in sublist]
+        return [e for sublist in (v for e in self.database["keys"] for v in e.values()) for e in sublist]
 
     @property
     def color(self):
@@ -92,9 +62,6 @@ class Database:
 
     def dump(self):
         return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
-
-    def key_exists(self, key):
-        return key in self.keys
 
     def index_key(self, key):
         keys = self.keys
@@ -118,7 +85,8 @@ class Database:
                 self.database["keys"].append({key: [app.name for app in heroku3.from_key(key).apps()]})
                 self.dump()
             except HTTPError:
-                raise DatabaseError("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
+                raise DatabaseError(
+                    "Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
         return self.database
 
     def remove_key(self, key):
@@ -163,9 +131,13 @@ class Database:
             self.dump()
             return apps
         except HTTPError:
-            raise DatabaseError("Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
+            raise DatabaseError(
+                "Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
 
     def sync_database(self):
         for key in self.keys:
             self.sync_key(key)
         return self.database
+
+
+database = Database()
