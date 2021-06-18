@@ -1,7 +1,7 @@
 import json
 import pathlib
 import sys
-from typing import Any
+from typing import Any, Optional
 
 import heroku3
 import yaml
@@ -39,11 +39,11 @@ class Database:
         self.database[key] = value
 
     @property
-    def keys(self):
+    def keys(self) -> list:
         return [key for item in self.database["keys"] for key in item.keys()]
 
     @property
-    def apps(self):
+    def apps(self) -> list:
         # 1. Gets all `values` which is a list of all apps (ex. [["app_1", "app_2"], ["app_3", "app_4"]])
         # 2. Flattens the list (ex. ["app_1", "app_2", "app_3", "app_4"])
         # this could prob be made better but I can't think of how right now.
@@ -52,12 +52,12 @@ class Database:
     def dump(self):
         return self.database_file.write_text(yaml.dump(self.database), encoding="utf8")
 
-    def index_key(self, key: str):
+    def index_key(self, key: str) -> Optional[int]:
         for i, k in enumerate(self.keys):
             if key == k:
                 return i
 
-    def key_from_app(self, app: str):
+    def key_from_app(self, app: str) -> Optional[list]:
         for item in self.database["keys"]:
             apps = list(item.values())[0]
             if app in apps:
@@ -77,7 +77,7 @@ class Database:
             del self.database["keys"][self.index_key(key)]
             self.dump()
 
-    def sync_key(self, key: str):
+    def sync_key(self, key: str) -> list:
         try:
             apps = [app.name for app in heroku3.from_key(key).apps()]
             self.database["keys"][self.index_key(key)][key] = apps

@@ -39,20 +39,20 @@ class Herokron:
             self.dynos = formation[0]
 
     @property
-    def online(self):
+    def online(self) -> bool:
         return self.dynos.quantity == 1
 
     @property
-    def offline(self):
+    def offline(self) -> bool:
         return not self.online
 
-    def status(self):
+    def status(self) -> dict:
         """
         :return: dictionary containing information about the app's status
         """
         return {"online": self.online}
 
-    def _scale(self, turn_on: bool):
+    def _scale(self, turn_on: bool) -> dict:
         if turn_on and self.online:
             return {"online": True, "updated": False}
         if not turn_on and self.offline:
@@ -64,14 +64,14 @@ class Herokron:
             database.sync_database()
             raise AppError("You don't have access to this app (deleted?)")
 
-    def on(self):
+    def on(self) -> dict:
         """
         Switches the app online, if it isn't already.
         :return: dictionary containing information about the app
         """
         return self._scale(turn_on=True)
 
-    def off(self):
+    def off(self) -> dict:
         """
         Switches the app offline, if it isn't already.
         :return: dictionary containing information about the app
@@ -81,7 +81,7 @@ class Herokron:
 
 # shorthand functions
 
-def on(app: str):
+def on(app: str) -> dict:
     """
     Switches the app online, if it isn't already.
     :param app: The name of the Heroku app in which you want to change
@@ -91,7 +91,7 @@ def on(app: str):
     return Herokron(app).on()
 
 
-def off(app: str):
+def off(app: str) -> dict:
     """
     Switches the app offline, if it isn't already.
     :param app: The name of the Heroku app in which you want formation
@@ -100,7 +100,7 @@ def off(app: str):
     return Herokron(app).off()
 
 
-def status(app: str):
+def status(app: str) -> dict:
     """
     :param app: The name of the Heroku app in which you want to change
     :type app: str
