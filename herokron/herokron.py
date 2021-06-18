@@ -164,7 +164,7 @@ def main():
     if _color:
         database.set_color(_color)
     # if anything that would warrant a database update exists, and printing is allowed
-    if (any({_add_key, _remove_key, _webhook, _color}) or _database is not False) and _no_print is False:
+    if (_add_key or _remove_key or _webhook or _color or _database) and _no_print is False:
         # ehhh i don't like the database.database syntax
         # I'll have to work on that sometime.
         print(Formatting().format(database.database))
@@ -191,10 +191,7 @@ def main():
     if _no_print is False:
         print(Formatting().format(result))
 
-    if check_status:
-        return
-
-    if _no_log is False and database.webhook:
+    if database.webhook and not (_no_log or check_status):
         try:
             online = result["online"]
             updated = result["updated"]
