@@ -1,6 +1,10 @@
-class AppError(Exception):
+class HerokronError(Exception):
     pass
 
 
-class DatabaseError(Exception):
+class AppError(HerokronError):
+    pass
+
+
+class DatabaseError(HerokronError):
     pass
