@@ -1,2 +1,3 @@
 requests
 heroku3>=4.2.3
+PyYAML>=5.3.1
