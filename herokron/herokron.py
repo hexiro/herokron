@@ -177,17 +177,18 @@ def main():
         print(Formatting().format(database.database))
 
     # handle status changes
+    app = options.on or options.off or options.status
 
-    _on = options.on
-    _off = options.off
-    _status = options.status
+    turn_on = bool(options.on)
+    turn_off = bool(options.off)
+    check_status = bool(options.status)
 
-    if _on:
-        log = globals()["on"](_on)
-    elif _off:
-        log = globals()["off"](_off)
-    elif _status:
-        log = globals()["status"](_status)
+    if turn_on:
+        log = on(app)
+    elif turn_off:
+        log = off(app)
+    elif check_status:
+        log = status(app)
     else:
         # if a `status change` is not called there is nothing else to do past this point,
         # so we just return w/o consequences.
@@ -195,6 +196,9 @@ def main():
 
     if _no_print is False:
         print(Formatting().format(log))
+
+    if check_status:
+        return
 
     # if function is a status change, logging is allowed, and a discord webhook is set:
     if (isinstance(log, dict) and "updated" in log) and _no_log is False and database.webhook:
@@ -206,7 +210,6 @@ def main():
             else:
                 previous = match_dict[log["updated"]]
             current = match_dict[log["online"]]
-            app = _on or _off or _status
             log_embed = dhooks.Embed(
                 title=app,
                 # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
