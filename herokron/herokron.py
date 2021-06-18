@@ -32,9 +32,9 @@ class Herokron:
         if not formation:
             raise AppError("App has no process types. (can't be turned on/off)")
         elif "worker" in formation:
-            self.dynos = self.app.process_formation()["worker"]
+            self.dynos = formation["worker"]
         elif "web" in formation:
-            self.dynos = self.app.process_formation()["web"]
+            self.dynos = formation["web"]
         else:
             self.dynos = formation[0]
 
@@ -94,8 +94,7 @@ def on(app: str):
 def off(app: str):
     """
     Switches the app offline, if it isn't already.
-    :param app: The name of the Heroku app in which you want to change
-    :type app: str
+    :param app: The name of the Heroku app in which you want formation
     :return: dictionary containing information about the app
     """
     return Herokron(app).off()
