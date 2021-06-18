@@ -77,12 +77,11 @@ class Database:
             del self.database["keys"][self.index_key(key)]
             self.dump()
 
-    def sync_key(self, key: str) -> list:
+    def sync_key(self, key: str):
         try:
             apps = [app.name for app in heroku3.from_key(key).apps()]
             self.database["keys"][self.index_key(key)][key] = apps
             self.dump()
-            return apps
         except HTTPError:
             raise DatabaseError(
                 "Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
