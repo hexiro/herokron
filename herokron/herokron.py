@@ -40,7 +40,7 @@ class Herokron:
 
     @property
     def online(self):
-        return bool(self.dynos.quantity)
+        return self.dynos.quantity == 1
 
     @property
     def offline(self):
