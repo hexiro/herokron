@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as readme_file:
     readme = readme_file.read()
@@ -18,7 +18,7 @@ setup(
     author="Hexiro",
     author_email="realhexiro@gmail.com",
     url="https://github.com/Hexiro/Herokron",
-    packages=["herokron"],
+    packages=["herokron"] + [("herokron." + x) for x in find_packages(where="herokron")],
     entry_points={
         "console_scripts": [
             "herokron = herokron.herokron:main"

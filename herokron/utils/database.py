@@ -6,7 +6,7 @@ import sys
 import heroku3
 from requests import HTTPError
 
-from .exceptions import DatabaseError
+from ..exceptions import DatabaseError
 
 
 class DatabaseUtility:

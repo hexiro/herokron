@@ -4,8 +4,8 @@ from argparse import ArgumentParser
 import dhooks
 import heroku3
 
-from .formatting import FormattingUtility
-from .database import DatabaseUtility
+from .utils.formatting import FormattingUtility
+from .utils.database import DatabaseUtility
 from .exceptions import AppError, DatabaseError
 
 
