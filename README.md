@@ -1,13 +1,11 @@
 ## Herokron
 
-Herokron is a python package used to make switching [Heroku](https://heroku.com/) apps on/off easy, especially between accounts. The primary use case is from the command line in the form of a cron job (hence the ending *kron*), but Herokron does work in a python file. Optionally, all on/off status changes called from the command line are logged in a discord server by a webhook.
+Herokron is a python package used to make switching [Heroku](https://heroku.com/) apps on/off easy, especially between accounts. The primary use case is from the command line in the form of a cron job (hence the ending *kron*), but Herokron does work in a python file.
 
 ![Forks](https://img.shields.io/github/forks/Hexiro/Herokron)
 ![Stars](https://img.shields.io/github/stars/Hexiro/Herokron)
 ![Issues](https://img.shields.io/github/issues/Hexiro/Herokron)
 ![License](https://img.shields.io/github/license/Hexiro/Herokron)
-
-![Herokron Webhook Example](https://i.imgur.com/42O2mbP.png)
 
 
 ## 📦 Installation
@@ -32,9 +30,9 @@ View the database to make sure everything is working.
 $ Herokron -database
 ```
 
-##  Usage
+##  🖥️ Usage
 
-### 🖥️ Command Line
+### Command Line
 
 ```console
 $ Herokron --help
