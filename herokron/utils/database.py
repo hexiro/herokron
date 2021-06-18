@@ -13,11 +13,11 @@ class Database:
     """ Utility to make main module more readable, and interactions with the database robust. """
 
     if sys.platform == "win32":
-        database_file = pathlib.Path.home() / "AppData" / "Roaming" / "Herokron" / "db.yaml"
+        database_file = pathlib.Path.home() / "AppData" / "Roaming" / "herokron" / "database.yaml"
     elif sys.platform == "linux":
-        database_file = pathlib.Path.home() / ".local" / "share" / "Herokron" / "db.yaml"
+        database_file = pathlib.Path.home() / ".local" / "share" / "herokron" / "database.yaml"
     elif sys.platform == "darwin":
-        database_file = pathlib.Path.home() / "Library" / "Application Support" / "Herokron" / "db.yaml"
+        database_file = pathlib.Path.home() / "Library" / "Application Support" / "herokron" / "database.yaml"
     else:
         raise OSError("Unsupported OS. Please inform maintainer(s) of what your sys.platform is, "
                       "or submit a pull request at: https://github.com/Hexiro/Herokron.")
