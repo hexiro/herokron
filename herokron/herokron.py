@@ -50,17 +50,14 @@ class Herokron:
         """
         :return: dictionary containing information about the app's status
         """
-        return {
-            "online": self.online,
-            "app": self.app.name
-        }
+        return {"online": self.online}
 
     def on(self):
         """
         Switches the app online, if it isn't already.
         :return: dictionary containing information about the app
         """
-        completion_dict = {"online": True, "app": self.app.name}
+        completion_dict = {"online": True}
         if self.online:
             return {"updated": False, **completion_dict}
 
@@ -72,7 +69,7 @@ class Herokron:
         Switches the app offline, if it isn't already.
         :return: dictionary containing information about the app
         """
-        completion_dict = {"online": False, "app": self.app.name}
+        completion_dict = {"online": False}
         if self.offline:
             return {"updated": False, **completion_dict}
 
@@ -211,13 +208,14 @@ def main():
             else:
                 previous = match_dict[log["updated"]]
             current = match_dict[log["online"]]
+            app = _on or _off or _status
             log_embed = dhooks.Embed(
-                title=log["app"],
+                title=app,
                 # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
                 description=f"**STATUS:⠀{previous}      →      {current}**\n"
                             "\n"
                             "View affected app:\n"
-                            f"[heroku.com](https://dashboard.heroku.com/apps/{log['app']})",
+                            f"[heroku.com](https://dashboard.heroku.com/apps/{app})",
                 color=database.color
             )
             log_embed.set_timestamp(now=True)
