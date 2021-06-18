@@ -21,7 +21,7 @@ class Herokron:
         if app not in database.apps:
             database.sync_database()
         if app in database.apps:
-            self.heroku = heroku3.from_key(database.get_key(app))
+            self.heroku = heroku3.from_key(database.key_from_app(app))
             self.app = self.heroku.app(app)
 
         # after a refresh if self.heroku still isn't defined

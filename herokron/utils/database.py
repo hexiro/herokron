@@ -65,20 +65,15 @@ class Database:
         return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
 
     def index_key(self, key):
-        keys = self.keys
-        for index in range(len(keys)):
-            if key == keys[index]:
-                return index
+        for i, k in enumerate(self.keys):
+            if key == k:
+                return i
 
-    def get_key(self, app):
+    def key_from_app(self, app):
         for item in self.database["keys"]:
             apps = list(item.values())[0]
             if app in apps:
                 return list(item.keys())[0]
-
-    def get_apps(self, key):
-        if key in self.keys:
-            return self.database["keys"][key]
 
     def add_key(self, key):
         if key not in self.keys:
@@ -86,8 +81,8 @@ class Database:
                 self.database["keys"].append({key: [app.name for app in heroku3.from_key(key).apps()]})
                 self.dump()
             except HTTPError:
-                raise DatabaseError(
-                    "Invalid Heroku API Key. View your API Key(s) at: https://dashboard.heroku.com/account.")
+                raise DatabaseError("Invalid Heroku API Key. "
+                                    "View your API Key(s) at: https://dashboard.heroku.com/account.")
         return self.database
 
     def remove_key(self, key):
