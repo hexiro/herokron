@@ -1,10 +1,9 @@
 import sys
 from argparse import ArgumentParser
 
-import dhooks
 import heroku3
 
-from .exceptions import AppError, DatabaseError
+from .exceptions import AppError
 from .utils import format_data
 from .utils.database import database
 
@@ -127,13 +126,6 @@ def main():
                         help="Adds the Heroku API key specified.")
     parser.add_argument("--remove-key",
                         help="Removes the Heroku API key specified.")
-    parser.add_argument("--set-webhook",
-                        help="Sets the Discord Webhook URL for logging.")
-    parser.add_argument("--set-color",
-                        help="Sets the Discord Embed Color.")
-    parser.add_argument("--no-log",
-                        help="Stops this iteration from logging.",
-                        action="store_true")
     parser.add_argument("--no-print",
                         help="Stops this iteration from printing.",
                         action="store_true")
@@ -148,9 +140,6 @@ def main():
 
     _add_key = options.add_key
     _remove_key = options.remove_key
-    _webhook = options.set_webhook
-    _color = options.set_color
-    _no_log = options.no_log
     _no_print = options.no_print
     _database = options.database
 
@@ -159,12 +148,8 @@ def main():
         database.add_key(_add_key)
     if _remove_key:
         database.remove_key(_remove_key)
-    if _webhook:
-        database.set_webhook(_webhook)
-    if _color:
-        database.set_color(_color)
     # if anything that would warrant a database update exists, and printing is allowed
-    if (_add_key or _remove_key or _webhook or _color or _database) and _no_print is False:
+    if (_add_key or _remove_key or _database) and _no_print is False:
         # ehhh i don't like the database.database syntax
         # I'll have to work on that sometime.
         print(format_data(database.database))
@@ -190,29 +175,3 @@ def main():
 
     if _no_print is False:
         print(format_data(result))
-
-    if database.webhook and not (_no_log or check_status):
-        try:
-            online = result["online"]
-            updated = result["updated"]
-            current = "🟢" if result["online"] else "🔴"
-            if not updated:
-                previous = current
-            else:
-                previous = "🔴" if online else "🟢"
-            log_embed = dhooks.Embed(
-                title=app,
-                color=database.color,
-                # `hair spaces` (small space unicode) in description to split the emojis apart in a nice manner.
-                description=f"**STATUS:⠀{previous}      →      {current}**\n"
-                            "\n"
-                            "View affected app:\n"
-                            f"[heroku.com](https://dashboard.heroku.com/apps/{app})"
-
-            )
-            log_embed.set_timestamp(now=True)
-            database.webhook.send(embed=log_embed)
-        except ValueError:
-            raise DatabaseError("Discord logging attempted with invalid webhook set in local database. "
-                                "If your webhook is valid, please open an issue at: "
-                                "https://github.com/Hexiro/Herokron.")

@@ -1,9 +1,7 @@
 import json
 import pathlib
-import re
 import sys
 
-import dhooks
 import heroku3
 from requests import HTTPError
 
@@ -50,17 +48,6 @@ class Database:
         # this could prob be made better but I can't think of how right now.
         return [e for sublist in (v for e in self.database["keys"] for v in e.values()) for e in sublist]
 
-    @property
-    def color(self):
-        # ooooooooooooooh returns cleaaaaaaaaaaaaaan data
-        return int(self.database["color"])
-
-    @property
-    def webhook(self) -> dhooks.Webhook:
-        hook = self.database.get("webhook", {})
-        if "id" in hook and "token" in hook:
-            return dhooks.Webhook("https://discord.com/api/webhooks/{id}/{token}".format(**hook))
-
     def dump(self):
         return self.database_file.write_text(json.dumps(self.database), encoding="utf8")
 
@@ -88,33 +75,6 @@ class Database:
         if key in self.keys:
             del self.database["keys"][self.index_key(key)]
             self.dump()
-
-    def set_webhook(self, url):
-        # p.s. this regex is blatantly ripped from https://github.com/kyb3r/dhooks
-        # discord webhook api wrapper ^
-        search = re.match("^(?:https?://)?((canary|ptb)\\.)?discord(?:app)?\\.com/api/webhooks/(?P<id>[0-9]+)/("
-                          "?P<token>[A-Za-z0-9\\.\\-\\_]+)/?$", url)
-        if not search:
-            raise DatabaseError("Webhook passed doesn't match webhook format.")
-        self.database["webhook"] = search.groupdict()
-        self.dump()
-
-    def set_color(self, color: str):
-        # change #FFFFFF to FFFFFF
-        if color.startswith("#"):
-            color = color[1:]
-        # convert from base 16 to base 10
-        if len(color) == 6:
-            color = int(color, 16)
-        # change type to base 10 int
-        else:
-            color = int(color)
-        if 0 <= color <= 16777215:
-            # 16777215 should be max value; 16777215 is FFFFFF in base 10
-            self.database["color"] = color
-            self.dump()
-        else:
-            raise DatabaseError("Color passed isn't in base 16 or hexadecimal.")
 
     def sync_key(self, key):
         try:
