@@ -5,7 +5,7 @@ import dhooks
 import heroku3
 
 from .exceptions import AppError, DatabaseError
-from .utils import Formatting
+from .utils import format_data
 from .utils.database import database
 
 
@@ -167,7 +167,7 @@ def main():
     if (_add_key or _remove_key or _webhook or _color or _database) and _no_print is False:
         # ehhh i don't like the database.database syntax
         # I'll have to work on that sometime.
-        print(Formatting().format(database.database))
+        print(format_data(database.database))
 
     # handle status changes
 
@@ -189,7 +189,7 @@ def main():
         return
 
     if _no_print is False:
-        print(Formatting().format(result))
+        print(format_data(result))
 
     if database.webhook and not (_no_log or check_status):
         try:
