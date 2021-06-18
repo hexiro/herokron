@@ -2,6 +2,7 @@ import sys
 from argparse import ArgumentParser
 
 import heroku3
+import requests.exceptions
 
 from .exceptions import AppError
 from .utils import format_data
@@ -51,27 +52,27 @@ class Herokron:
         """
         return {"online": self.online}
 
+    def _scale(self, turn_on):
+        if turn_on and self.online:
+            return {"online": True, "updated": False}
+        if not turn_on and self.offline:
+            return {"online": False, "updated": False}
+        self.dynos.scale(int(turn_on))
+        return {"online": turn_on, "updated": True}
+
     def on(self):
         """
         Switches the app online, if it isn't already.
         :return: dictionary containing information about the app
         """
-        if self.online:
-            return {"online": True, "updated": False}
-
-        self.dynos.scale(1)
-        return {"online": True, "updated": True}
+        return self._scale(turn_on=True)
 
     def off(self):
         """
         Switches the app offline, if it isn't already.
         :return: dictionary containing information about the app
         """
-        if self.offline:
-            return {"online": False, "updated": False}
-
-        self.dynos.scale(0)
-        return {"online": False, "updated": True}
+        return self._scale(turn_on=False)
 
 
 # shorthand functions
