@@ -88,4 +88,4 @@ $ which herokron
 
 
 # Contributing
-Pull requests are always 100% welcomed and appreciated. Right now, I have no way of Testing Mac OS and other Linux distributions. All modern operating systems should work. Operation system is only used to find the local database file.
+Pull requests are always 100% welcomed and appreciated. Right now, I have no way of testing Mac OS and other Linux distributions. All modern operating systems should work, as  they're only used to find the local database file.
