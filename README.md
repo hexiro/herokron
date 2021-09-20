@@ -13,7 +13,7 @@ Herokron is a python package used to make switching [Heroku](https://heroku.com/
 Install the package with pip.
 
 ```
-pip3 install git+https://github.com/Hexiro/Herokron
+pip3 install git+https://github.com/Hexiro/herokron
 ```
 
 
@@ -21,13 +21,13 @@ pip3 install git+https://github.com/Hexiro/Herokron
 
 Load API keys, and setup logging
 ```console
-$ Herokron --add-key {key} 
-$ Herokron --set-webhook {discord_webhook}
-$ Herokron --set-color {discord_embed_color}
+$ herokron --add-key {key} 
+$ herokron --set-webhook {discord_webhook}
+$ herokron --set-color {discord_embed_color}
 ```
 View the database to make sure everything is working.
 ```console
-$ Herokron -database
+$ herokron -database
 ```
 
 ##  🖥️ Usage
@@ -35,7 +35,7 @@ $ Herokron -database
 ### Command Line
 
 ```console
-$ Herokron --help
+$ herokron --help
 ```
 app commands (classified by leading -)
 ```console
